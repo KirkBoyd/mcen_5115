@@ -7,7 +7,9 @@
 
 String input;
 
-#define line1pin 2//teensy digital pin 2
+#define stripeR 2 //teensy digital pin 2
+#define stripeL 3 //
+#define stripeMid 4 //
 #define aIn1_f 39//teensy pin 39
 #define aIn2_f 38//teensy pin 38
 #define pwmA_f 14//teensy pin 14 // speed for front left motor
@@ -44,50 +46,40 @@ void setup() {
   pinMode(bIn1_b, OUTPUT);
   pinMode(bIn2_b, OUTPUT);
   pinMode(pwmB_b, OUTPUT);
+  pinMode(stripeL, INPUT);
+  pinMode(stripeMid, INPUT);
+  pinMode(stripeR, INPUT);
   Serial.begin(9600);
-  //Wire.begin(SLAVE_ADDRESS); // this will begin I2C Connection with 0x40 address
-  //Wire.onRequest(sendData); // sendData is funtion called when Pi requests data
+//  Wire.begin(SLAVE_ADDRESS); // this will begin I2C Connection with 0x40 address
+//  Wire.onRequest(sendData); // sendData is funtion called when Pi requests data
 //  pinMode(LDR_pin,INPUT);
-  //Wire.begin(0x8);                // join i2c bus with address #8
-  //Wire.onReceive(receiveEvent); // register event
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW); // turn it off
-  delay(2000);
-  Serial.println("Awaiting Serial Input...");
+//  Wire.begin(0x8);                // join i2c bus with address #8
+//  Wire.onReceive(receiveEvent); // register event
+//  pinMode(ledPin, OUTPUT);
+//  digitalWrite(ledPin, LOW); // turn it off
+//  Serial.println("Awaiting Serial Input...");
 }
 
 void loop() {
-// Serial.println(digitalRead(line1pin));
-// digitalWrite(ledPin,HIGH);
-// delay(250);
-// digitalWrite(ledPin,LOW);
-// delay(1000);
-  while(middle == 0){
-    if(rightStripe == 0){
-      right();
+  printStripes();
+//  allDirsTest();
+        
+  //while(digitalRead(stripeMid) == LOW){
+          Serial.println("in whiel");
+    //delay(1000);
+    if(digitalRead(stripeR) == LOW){ 
+      east();
+      Serial.println("tyna go east");
     }
-    else if(leftStripe == 0){
-      left();
+    else if(digitalRead(stripeL) == LOW){ 
+                      west();
+          Serial.println("tyna go weast"); 
     }
-    else{
-      north();
-    }//end else
-  }//end while(middle == 0)
+    else{ 
+              north(); 
+            Serial.println("tyna go north");
+    }
+    
+  //}//end while(middle == 0)
+  //stop();
 }//end void loop
-
-//void sendData(){
-//  LDR_value=analogRead(LDR_pin);
-//  // Arduino returns 10bit data but we need to convert it to 8bit 
-//  LDR_value=map(LDR_value,0,1023,0,255);
-//  response[0]=(byte)LDR_value;
-//  Wire.write(response,2); // return data to PI
-//}
-//
-//void receiveEvent(int howMany) {
-//  while (Wire.available()) { // loop through all but the last
-//    if (Wire.read()){
-//     on = !on; // receive byte as a character
-//    //digitalWrite(ledPin, c);
-//    }
-//  }
-//}
