@@ -1,12 +1,8 @@
+/** LIBRARIES **/
 //#include <Wire.h>  // Library which contains functions to have I2C Communication
-//#define SLAVE_ADDRESS 0x40 // Define the I2C address to Communicate to Uno
-//
-//byte response[2]; // this data is sent to PI
-//volatile short LDR_value; // Global Declaration
-//const int LDR_pin=A9; //pin to which LDR is connected A0 is analog A0 pin 
 
-String input;
-
+/** CONSTANTS **/
+// Pins //
 #define stripeR 2 //teensy digital pin 2
 #define stripeL 3 //
 #define stripeMid 4 //
@@ -27,6 +23,25 @@ String input;
 #define mRr 3
 #define mRl 4
 #define ledPin 13
+
+
+// RFM69 SETUP //
+#define FREQUENCY RF69_915MHZ
+#define ENCRYPT false //set to "true" to encrypt signal
+#define ENCRYPTKEY "youShouldKnowThisAlready" // "Use the same 16-byte key on all nodes"
+#define USEACK false //set to "true" to request acknowledgements (ACKs) when packets recieved
+RFM69 radio;
+
+// PIXY2 SETUP //
+//#define SLAVE_ADDRESS 0x40 // Define the I2C address to Communicate to Uno
+//
+//byte response[2]; // this data is sent to PI
+//volatile short LDR_value; // Global Declaration
+//const int LDR_pin=A9; //pin to which LDR is connected A0 is analog A0 pin 
+
+String input;
+
+
 int speedPin = 0;
 int ctrl_1 = 0;
 int ctrl_2 = 0;
