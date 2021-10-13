@@ -26,11 +26,15 @@
 
 
 // RFM69 SETUP //
-#define FREQUENCY RF69_915MHZ
+#define NETWORKID 10 //must match all nodes
+#define MYNODEID 2  //our node
+#define TONODEID 1 //Reamon's output node
+#define FREQUENCY RF69_915MHZ //this should not change
 #define ENCRYPT false //set to "true" to encrypt signal
 #define ENCRYPTKEY "youShouldKnowThisAlready" // "Use the same 16-byte key on all nodes"
 #define USEACK false //set to "true" to request acknowledgements (ACKs) when packets recieved
-RFM69 radio;
+
+RFM69 radio; //create the radio object
 
 // PIXY2 SETUP //
 //#define SLAVE_ADDRESS 0x40 // Define the I2C address to Communicate to Uno
@@ -64,7 +68,7 @@ void setup() {
   pinMode(stripeL, INPUT);
   pinMode(stripeMid, INPUT);
   pinMode(stripeR, INPUT);
-  Serial.begin(9600);
+  Serial.begin(38400); // can change this later if need be
 //  Wire.begin(SLAVE_ADDRESS); // this will begin I2C Connection with 0x40 address
 //  Wire.onRequest(sendData); // sendData is funtion called when Pi requests data
 //  pinMode(LDR_pin,INPUT);

@@ -1,3 +1,17 @@
+
+//order:
+//fL fR bL bR
+void mm(int speeds[], bool dirs[]){
+  speeds[1] = fLspeed;
+  speeds[2] = fRspeed;
+  speeds[3] = bLspeed;
+  speeds[4] = bRspeed;
+  dirs[1] = fLdir;
+  dirs[1] = fRdir;
+  dirs[1] = bLdir;
+  dirs[1] = fLdir;
+  digitalWrite(aIn1_f, dir)
+}
 void moveMotor(int motorNum, bool dir, float speedRatio){ // motorNum is which motor; dir is fwd or back; speed ratio is a number between 0 and 1 where 0 is stopped and 1 is full speed
   if(motorNum == 1){
     digitalWrite(aIn1_f, dir);
