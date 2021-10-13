@@ -35,10 +35,7 @@ def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
 #Test Cases
 forward = np.array([[5000],[0],[0]])
 backward = np.array([[-5000],[0],[0]])
-left = (0,5,0)
-right = (0,-5,0)
 forward_left = np.array([[5000],[5000],[0]])
-forward_right = (5,-5,0)
 # print('Forward')
 # motorSpeed(forward)
 # print('backward')
