@@ -6,18 +6,18 @@
 #define stripeR 2 //teensy digital pin 2
 #define stripeL 3 //
 #define stripeMid 4 //
-#define aIn1_f 39//teensy pin 39
-#define aIn2_f 38//teensy pin 38
-#define pwmA_f 14//teensy pin 14 // speed for front left motor
-#define bIn1_f 40//teensy pin 40
-#define bIn2_f 41//teensy pin 41
-#define pwmB_f 37//teensy pin 37 //speed for front right motor
-#define aIn1_b 15//teensy pin 15
-#define aIn2_b 16//teensy pin 16
-#define pwmA_b 36//teensy pin 36 //speed for back left motor
-#define bIn1_b 17//teensy pin 17
-#define bIn2_b 22//teensy pin 22
-#define pwmB_b 33//teensy pin 33 //speed for back right motor
+#define aIn1_f
+#define aIn2_f
+#define pwmA_f 10   // speed for front left motor
+#define bIn1_f
+#define bIn2_f
+#define pwmB_f 11   //speed for front right motor
+#define aIn1_b
+#define aIn2_b
+#define pwmA_b 12   //speed for back left motor
+#define bIn1_b
+#define bIn2_b
+#define pwmB_b 13   //speed for back right motor
 #define mFr 1
 #define mFl 2
 #define mRr 3

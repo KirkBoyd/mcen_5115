@@ -23,8 +23,8 @@
 // Addresses for this node. CHANGE THESE FOR EACH NODE!
 
 #define NETWORKID     10  // Must be the same for all nodes
-#define MYNODEID      2   // My node ID
-#define TONODEID      1   // Origin node ID
+#define MYNODEID      4   // My node ID
+#define TONODEID      3   // Origin node ID
 
 // RFM69 frequency, uncomment the frequency of your module:
 
@@ -39,7 +39,8 @@
 #define USEACK        false // Request ACKs or not
 
 // Packet sent/received indicator LED (optional):
-#define LED           9 // LED positive pin
+#define LED           13 // LED positive pin
+#define LED1          9
 #define GND           8 // LED ground pin
 
 // Create a library object for our RFM69HCW module:
@@ -47,6 +48,7 @@ RFM69 radio;
 
 void setup()
 {
+  //attachInterrupt(digitalPinToInterrupt(button2pin), resetSw, RISING);
   // Open a serial port so we can see the data we receive
   Serial.begin(38400);
   Serial.print("Node ");
@@ -56,6 +58,8 @@ void setup()
   // Set up the indicator LED (optional):
   pinMode(LED,OUTPUT);
   digitalWrite(LED,LOW);
+  pinMode(LED1,OUTPUT);
+  digitalWrite(LED1,LOW);
   pinMode(GND,OUTPUT);
   digitalWrite(GND,LOW);
 
@@ -85,11 +89,18 @@ void loop()
     // and is DATALEN bytes in size:
     for (byte i = 0; i < radio.DATALEN; i++)
       Serial.print((char)radio.DATA[i]);
-
+    
     // RSSI is the "Receive Signal Strength Indicator",
     // smaller numbers mean higher power.
     Serial.print("], RSSI ");
     Serial.println(radio.RSSI);
+    //Serial.println((char)radio.DATA[8]);
+    if ((char)radio.DATA[8] == '9'){
+      //Serial.print("here");
+      digitalWrite(LED1, HIGH);
+      delay(250);
+      digitalWrite(LED1, LOW);
+    }
 
     // Send an ACK if requested.
     // (You don't need this code if you're not using ACKs.)
