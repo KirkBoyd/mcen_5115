@@ -1,93 +1,93 @@
 
 //order:
 //fL fR bL bR
-void mm(int speeds[], bool dirs[]){
-  speeds[1] = fLspeed;
-  speeds[2] = fRspeed;
-  speeds[3] = bLspeed;
-  speeds[4] = bRspeed;
-  dirs[1] = fLdir;
-  dirs[1] = fRdir;
-  dirs[1] = bLdir;
-  dirs[1] = fLdir;
-  digitalWrite(aIn1_f, dir)
-}
+//void mm(int speeds[], bool dirs[]){
+//  speeds[1] = fLspeed;
+//  speeds[2] = fRspeed;
+//  speeds[3] = bLspeed;
+//  speeds[4] = bRspeed;
+//  dirs[1] = fLdir;
+//  dirs[1] = fRdir;
+//  dirs[1] = bLdir;
+//  dirs[1] = fLdir;
+//  digitalWrite(aIn1_f, dir)
+//}
 void moveMotor(int motorNum, bool dir, float speedRatio){ // motorNum is which motor; dir is fwd or back; speed ratio is a number between 0 and 1 where 0 is stopped and 1 is full speed
   if(motorNum == 1){
-    digitalWrite(aIn1_f, dir);
-    digitalWrite(aIn2_f, !dir);
-    analogWrite(pwmA_f, speedRatio*255);
+    digitalWrite(aIn1_FL, dir);
+    digitalWrite(aIn2_FL, !dir);
+    analogWrite(pwm_FL, speedRatio*255);
   }
   else if(motorNum == 2){
-    digitalWrite(bIn1_f, dir);
-    digitalWrite(bIn2_f, !dir);
-    analogWrite(pwmB_f, speedRatio*255);  
+    digitalWrite(aIn1_FR, dir);
+    digitalWrite(aIn2_FR, !dir);
+    analogWrite(pwm_FR, speedRatio*255);  
   }
   else if(motorNum == 3){
-    digitalWrite(aIn1_b, dir);
-    digitalWrite(aIn2_b, !dir);
-    analogWrite(pwmA_b, speedRatio*255);
+    digitalWrite(aIn1_BL, dir);
+    digitalWrite(aIn2_BL, !dir);
+    analogWrite(pwm_BL, speedRatio*255);
   }
   else if(motorNum == 4){
-    digitalWrite(bIn1_b, dir);
-    digitalWrite(bIn2_b, !dir);
-    analogWrite(pwmB_b, speedRatio*255);
+    digitalWrite(aIn1_BR, dir);
+    digitalWrite(aIn2_BR, !dir);
+    analogWrite(pwm_BR, speedRatio*255);
   }
 }
 
 void stop(){
-  moveMotor(1, HIGH, 0);
-  moveMotor(2, HIGH, 0);
-  moveMotor(3, HIGH, 0);
-  moveMotor(4, HIGH, 0);
+  moveMotor(mFL, HIGH, 0);
+  moveMotor(mFR, HIGH, 0);
+  moveMotor(mBL, HIGH, 0);
+  moveMotor(mBR, HIGH, 0);
 }
 void north(){
-  moveMotor(1, HIGH, 0.75);
-  moveMotor(2, HIGH, 0.75);
-  moveMotor(3, HIGH, 0.75);
-  moveMotor(4, HIGH, 0.75);
+  moveMotor(mFL, HIGH, 0.25);
+  moveMotor(mFR, HIGH, 0.25);
+  moveMotor(mBL, HIGH, 0.25);
+  moveMotor(mBR, HIGH, 0.25);
 }
 void south(){
-  moveMotor(1, LOW, 0.75);
-  moveMotor(2, LOW, 0.75);
-  moveMotor(3, LOW, 0.75);
-  moveMotor(4, LOW, 0.75);
+  moveMotor(mFL, LOW, 0.25);
+  moveMotor(mFR, LOW, 0.25);
+  moveMotor(mBL, LOW, 0.25);
+  moveMotor(mBR, LOW, 0.25);
 }
 void west(){
-  moveMotor(1, LOW, 0.75);
-  moveMotor(2, HIGH, 0.75);
-  moveMotor(3, HIGH, 0.75);
-  moveMotor(4, LOW, 0.75);
+  moveMotor(mFL, LOW, 0.25);
+  moveMotor(mFR, HIGH, 0.25);
+  moveMotor(mBL, HIGH, 0.25);
+  moveMotor(mBR, LOW, 0.25);
 }
 void east(){
-  moveMotor(1, HIGH, 0.75);
-  moveMotor(2, LOW, 0.75);
-  moveMotor(3, LOW, 0.75);
-  moveMotor(4, HIGH, 0.75);
+  moveMotor(mFL, HIGH, 0.25);
+  moveMotor(mFR, LOW, 0.25);
+  moveMotor(mBL, LOW, 0.25);
+  moveMotor(mBR, HIGH, 0.25);
 }
 void nw(){
-  moveMotor(1, HIGH, 0);
-  moveMotor(2, HIGH, 0.75);
-  moveMotor(3, HIGH, 0.75);
-  moveMotor(4, HIGH, 0);
+  moveMotor(mFL, HIGH, 0);
+  moveMotor(mFR, HIGH, 0.25);
+  moveMotor(mBL, HIGH, 0.25);
+  moveMotor(mBR, HIGH, 0);
 }
 void ne(){
-  moveMotor(1, HIGH, 0.75);
-  moveMotor(2, HIGH, 0);
-  moveMotor(3, HIGH, 0);
-  moveMotor(4, HIGH, 0.75);
+  moveMotor(mFL, HIGH, 0.25);
+  moveMotor(mFR, HIGH, 0);
+  moveMotor(mBL, HIGH, 0);
+  moveMotor(mBR, HIGH, 0.25);
 }
 void sw(){
-  moveMotor(1, LOW, 0.75);
-  moveMotor(2, HIGH, 0);
-  moveMotor(3, HIGH, 0);
-  moveMotor(4, LOW, 0.75);
+  moveMotor(mFL, LOW, 0.25);
+  moveMotor(mFR, HIGH, 0);
+  moveMotor(mBL, HIGH, 0);
+  moveMotor(mBR, LOW, 0.25);
 }
 void se(){
-  moveMotor(1, HIGH, 0);
-  moveMotor(2, LOW, 0.75);
-  moveMotor(3, LOW, 0.75);
-  moveMotor(4, HIGH, 0);
+  moveMotor(mFL, HIGH, 0);
+  moveMotor(mFR, LOW, 0.25);
+  moveMotor(mBL, LOW, 0.25);
+  moveMotor(mBR, HIGH, 0);
 }
 void allDirsTest(){
   north();

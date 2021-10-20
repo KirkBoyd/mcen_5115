@@ -7,10 +7,10 @@
     Serial.println(input);
     if(input == '1'){
       Serial.println("Moving Motor...");
-      moveMotor(1, HIGH, 0.75);
-      moveMotor(2, HIGH, 0.75);
-      moveMotor(3, HIGH, 0.75);
-      moveMotor(4, HIGH, 0.75);
+      moveMotor(1, HIGH, 0.25);
+      moveMotor(2, HIGH, 0.25);
+      moveMotor(3, HIGH, 0.25);
+      moveMotor(4, HIGH, 0.25);
       //delay(1000);
     }
     else if(input == '2'){

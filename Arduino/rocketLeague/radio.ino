@@ -1,3 +1,3 @@
 void radioCheck(){
-  Serial.println("C
+//  Serial.println("C
 }
