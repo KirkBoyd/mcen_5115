@@ -45,7 +45,7 @@ def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
     motorSpeedAbs = abs(motorSpeedOut) #Make motor speed a magnitude
     return motorSpeedAbs,inA1,inA2
 
-def world2Robot(cords): #Function to converd world coordinates to robot coordinates
+def world2Robot(cords): #Function to convert world coordinates to robot coordinates
     dX = posRobx-cords[0]
     dY = posRoby-cords[1]
     wTheta = np.arctan2(dY,dX)
@@ -69,7 +69,7 @@ def goal2Speed(goal): #Function to get robot velocity based off the curr robot p
     
     return V
 
-def updateVelocity(): #Update the global velocity of the robot por positioning data
+def updateVelocity(): #Update the global velocity of the robot per positioning data
     T = np.array([[1,1,1,1],[-1,1,1,-1],[-1/(lx+ly),1/(lx+ly),-1/(lx+ly),1/(lx+ly),],[1,-1,lx+ly]])/r #Translation matrix
     robotVelocity = np.dot(T,robotMotorSpeed) #Forward Kinematics
 
