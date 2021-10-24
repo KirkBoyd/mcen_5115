@@ -79,6 +79,7 @@ int speedRatio = 0;
 boolean on = false;
 
 void setup() {
+  // Initialize Pins //
   pinMode(aIn1_FL, OUTPUT);
   pinMode(aIn2_FL, OUTPUT);
   pinMode(pwm_FL, OUTPUT);
@@ -94,7 +95,20 @@ void setup() {
   pinMode(stripeL, INPUT);
   pinMode(stripeMid, INPUT);
   pinMode(stripeR, INPUT);
+
+  // Initialize Serial Connection //
   Serial.begin(38400); // can change this later if need be
+  Serial.println("Sandcrawler Initiated");
+  Serial.print("Node ");
+  Serial.print(MYNODEID,DEC);
+  Serial.println(" ready");
+
+  // Initialize Radio Module RFM69HCW //
+  radio.initialize(FREQUENCY, MYNODEID, NETWORKID);
+  radio.setHighPower();
+  if(ENCRYPT){radio.encrypt(ENCRYPTKEY);; // likely will not use
+
+  // Pixy Setup //
 //  Wire.begin(SLAVE_ADDRESS); // this will begin I2C Connection with 0x40 address
 //  Wire.onRequest(sendData); // sendData is funtion called when Pi requests data
 //  pinMode(LDR_pin,INPUT);
