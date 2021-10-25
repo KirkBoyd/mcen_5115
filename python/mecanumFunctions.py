@@ -14,7 +14,7 @@ import cv2 as cv
 
 ##Initialize Positions
 posBallx = 1500
-posBally = 2500
+posBally = 1000
 posOppx = 500.0
 posOppy = 3200
 posRobx = 700
@@ -22,9 +22,12 @@ posRoby = 500
 posRobt = 0
 posTargetx = 2440/2
 posTargety = 3660
+posProtectx = 2440/2 #Our goal
+posProtecty = 0 #Our Goal
 objective = []
 robotMotorSpeed = np.empty((1,4),float)
 robotVelocity = np.empty((3,1),int)
+defense = False
 
 ## Robot Parameters
 r = 97/2 # radius in mm
@@ -33,12 +36,8 @@ lx = 100 # Distance from center of robot to center of wheel in x direction
 maxRPM = 1000
 
 ## Plotting
-# worldMap = plt.figure("World Map",[2,3])
-# ax = plt.gca()
-# ax.set_xlim([0, 8*305])
-# ax.set_ylim([0,12*305])
 mapScale = .1 #1px = 1cm
-MAP = cv.imread("python\Map.PNG")
+MAP = cv.imread("python\Map.PNG") #Read in picture of map
 width = int(8*305*mapScale)
 height = int(12*305*mapScale)
 dimensions = (width,height)
@@ -75,11 +74,11 @@ def robot2World(cords): #Takes in robot coordinates (rx, ry, rt) and returns wor
 
     return [x,y]
 
-def goal2Speed(goal): #Function to get robot velocity based off the curr robot position and goal positions
+def goal2Speed(goal,bias): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
     robotGoalCords = world2Robot(goal)
     vx = robotGoalCords[0]
     vy = robotGoalCords[1]
-    vt = (goal[2] - posRobt)*10
+    vt = (goal[2] - posRobt)*bias
     
     return [vx,vy,vt]
 
@@ -93,7 +92,7 @@ def updateVelocity(): #Update the global velocity of the robot for positioning d
     robotVelocity = [-vx[0],vy[0],vt[0]] #THIS SHIT IS FUCKED (IDK WHY ITS -vx)
     pass
 
-def updatePosRob():
+def updatePosRob(): #Updates the position based on the global robot velocity values
     global posRobx
     global posRoby
     global posRobt
@@ -118,7 +117,7 @@ def robotTriangle(): #Returns the points of a triangle corresponding to the robo
     pts = np.array([(int(w1[0]*mapScale),height - int(w1[1]*mapScale)),(int(w2[0]*mapScale),height - int(w2[1]*mapScale)),(int(w3[0]*mapScale),height - int(w3[1]*mapScale))])
     return pts
 
-def updateMap():
+def updateMap(): #Updates minimap
     map = MAP.copy()
     # Blue for robot
     pts = robotTriangle()
@@ -133,43 +132,60 @@ def updateMap():
     cv.imshow('Map',map)
     pass
 
-def scoringPosition():
+def scoringPosition():  #Retruns a position and orientation of the robot that is in line with the ball and goal
     theta = np.arctan2(posTargety - posBally, posTargetx - posBallx)
     x = posBallx - 150*np.cos(theta)
     y = posBally - 150*np.sin(theta)
     return (x,y,theta)
 
+def positionCheck(position): #Checks if the robot is close enough to its desired position
+    distance = 100 #Maximum distance
+    angle = np.pi/16 #Maximum angle
+    return abs(posRobt-position[2]) < angle and np.sqrt((posRobx - position[0])**2 + (posRoby-position[1])**2) < distance
 
-#Test Cases
-# forward = np.array([[5000],[0],[0]])
-# backward = np.array([[-5000],[0],[0]])
-# forward_left = np.array([[5000],[5000],[0]])
-# print('Forward')
-# motorSpeed(forward)
-# print('backward')
-# motorSpeed(backward)
-# print('forward_left')
-# motorSpeed(forward_left)
+def updateBall(): #Updates the position of the ball to infront of the robot
+    global posBallx
+    global posBally
 
-#print(world2Robot(13,5,9,9,np.pi/4))
+    posBallx = posRobx + 150*np.cos(posRobt)
+    posBally = posRoby + 150*np.sin(posRobt)
 
+def defensePosition(): #Returns the point which is closest to the robot on a line from the ball to our goal
+    if posBally > posRoby: #Check that the robot is at least goal side
+        m = np.array([posBallx-posProtectx,posBally-posProtecty]) #Direction vector of line
+        A = np.array([posProtectx,posProtecty]) #Origin of line
+        P = np.array([posRobx,posRoby]) #Robot point
+        PA = P-A #From goal to rob
 
+        pose = np.dot(PA,m)/np.linalg.norm(m)**2*m + A
+        point = (pose[0],pose[1],np.arctan2(pose[0],pose[1]))
+    else: point = (posProtectx,posBally,np.pi/2)
+    return point
 
 ## Main Loop
-test = 0
+test = 1
 try:
-    while test != 5:
+    while test != 0:
         posOppy = posOppy - 1
-        objective = scoringPosition()
-        motorSpeed((goal2Speed(objective)))
-        updatePosRob()
-        # print(posRobx,posRoby,posRobt)
-        # print(objective)
-        # print(robotVelocity)
+        if defense:
+            objective = defensePosition()
+            motorSpeed((goal2Speed(objective,1)))
+            updatePosRob()
+        else:
+            objective = scoringPosition()
+            if positionCheck(objective):
+                motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10)))
+                updatePosRob()
+                updateBall()
+            else:
+                motorSpeed((goal2Speed(objective,5)))
+                updatePosRob()
         updateMap()
         # test = test + 1
         if cv.waitKey(20) & 0xFF==ord('d'):
             break
+    print('Point')
+    print(defensePosition())
 except KeyboardInterrupt:
     print("turds")
     cv.destroyAllWindows()
