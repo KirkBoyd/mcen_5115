@@ -1,4 +1,7 @@
-//First line of code
+// MCEN 5115 Final Project
+// Kirk Boyd, Ben Carnicelli, Isaiah Curtis, Thomas Gira, Wesley Schumacher
+// Created Oct 5, 2021
+// Last Modified Oct 25 - KB
 
 /** LIBRARIES **/
 //#include <Wire.h>  // Library which contains functions to have I2C Communication
