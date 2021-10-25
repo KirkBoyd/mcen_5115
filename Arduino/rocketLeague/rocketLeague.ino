@@ -62,6 +62,9 @@
 
 RFM69 radio; //create the radio object
 
+char radData[18];
+
+char datarino;
 // PIXY2 SETUP //
 //#define SLAVE_ADDRESS 0x40 // Define the I2C address to Communicate to Uno
 //
@@ -106,7 +109,7 @@ void setup() {
   // Initialize Radio Module RFM69HCW //
   radio.initialize(FREQUENCY, MYNODEID, NETWORKID);
   radio.setHighPower();
-  if(ENCRYPT){radio.encrypt(ENCRYPTKEY);; // likely will not use
+  if(ENCRYPT){radio.encrypt(ENCRYPTKEY);} // likely will not use
 
   // Pixy Setup //
 //  Wire.begin(SLAVE_ADDRESS); // this will begin I2C Connection with 0x40 address
@@ -120,8 +123,14 @@ void setup() {
 }
 
 void loop() {
+
+  
+/* Stuff below this was used in the past for debugging / lab / testing */  
+  getRadData();
+//  lab6radioCheck();
+//    lab6radioCheckExtraData();  
 //  printStripes();
-  allDirsTest();
+//  allDirsTest();
 //  north();
 //  digitalWrite(aIn1_BR, HIGH);
 //  digitalWrite(aIn2_BR, LOW);
