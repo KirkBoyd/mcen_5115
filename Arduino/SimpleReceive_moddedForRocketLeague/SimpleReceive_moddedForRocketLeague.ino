@@ -20,7 +20,16 @@
 // in a usable fashion
 
 
-
+char packet1[20];
+char packet2[20];
+int TXnum = 0;
+char TXnumChar = 0;
+int rPosX;
+int rPosY;
+int bPosX;
+int bPosY;
+int yPosX;
+int yPosY;
 
 // Include the RFM69 and SPI libraries:
 #include <SPI.h>
@@ -89,13 +98,41 @@ void loop()
 
     // The actual message is contained in the DATA array,
     // and is DATALEN bytes in size:
-    for (byte i = 0; i < radio.DATALEN; i++)
-      Serial.print((char)radio.DATA[i]);
-
+    if ((char)radio.DATA[0] == 'T'){
+      for (byte i = 0; i < radio.DATALEN; i++){
+        //Serial.print((char)radio.DATA[i]);
+        
+        packet1[i] = radio.DATA[i];
+      }
+      
+    }
+    if ((char)radio.DATA[0] == 'B'){
+      for (byte i = 0; i < radio.DATALEN; i++){
+        //Serial.print((char)radio.DATA[i]);
+        
+        packet2[i] = radio.DATA[i];
+      }
+      
+    }
+      Serial.print("packet1: ");
+      Serial.print(packet1);
+      Serial.print(", ");
+      Serial.print("packet2: ");
+      Serial.print(packet2);
+      Serial.println("]");
+      for (byte i = 0; i < radio.DATALEN; i++){
+        if (packet1[i] == ' ' && i<7){
+          if (packet1[i+1] != ' '){
+            TXnumChar += packet[i];
+          }
+        }
+      }
+      TXnum = packet1[5];
+      rPosX = packet1[
     // RSSI is the "Receive Signal Strength Indicator",
     // smaller numbers mean higher power.
-    Serial.print("], RSSI ");
-    Serial.println(radio.RSSI);
+    //Serial.print("], RSSI ");
+    //Serial.println(radio.RSSI);
 
     // Send an ACK if requested.
     // (You don't need this code if you're not using ACKs.)
