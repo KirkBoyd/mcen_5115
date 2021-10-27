@@ -42,51 +42,51 @@ void stop(){
   moveMotor(mBR, HIGH, 0);
 }
 void north(){
-  moveMotor(mFL, HIGH, 0.25);
-  moveMotor(mFR, HIGH, 0.25);
-  moveMotor(mBL, HIGH, 0.25);
-  moveMotor(mBR, HIGH, 0.25);
+  moveMotor(mFL, HIGH, 0.5);
+  moveMotor(mFR, HIGH, 0.5);
+  moveMotor(mBL, HIGH, 0.5);
+  moveMotor(mBR, HIGH, 0.5);
 }
 void south(){
-  moveMotor(mFL, LOW, 0.25);
-  moveMotor(mFR, LOW, 0.25);
-  moveMotor(mBL, LOW, 0.25);
-  moveMotor(mBR, LOW, 0.25);
+  moveMotor(mFL, LOW, 0.5);
+  moveMotor(mFR, LOW, 0.5);
+  moveMotor(mBL, LOW, 0.5);
+  moveMotor(mBR, LOW, 0.5);
 }
 void west(){
-  moveMotor(mFL, LOW, 0.25);
-  moveMotor(mFR, HIGH, 0.25);
-  moveMotor(mBL, HIGH, 0.25);
-  moveMotor(mBR, LOW, 0.25);
+  moveMotor(mFL, LOW, 0.5);
+  moveMotor(mFR, HIGH, 0.5);
+  moveMotor(mBL, HIGH, 0.5);
+  moveMotor(mBR, LOW, 0.5);
 }
 void east(){
-  moveMotor(mFL, HIGH, 0.25);
-  moveMotor(mFR, LOW, 0.25);
-  moveMotor(mBL, LOW, 0.25);
-  moveMotor(mBR, HIGH, 0.25);
+  moveMotor(mFL, HIGH, 0.5);
+  moveMotor(mFR, LOW, 0.5);
+  moveMotor(mBL, LOW, 0.5);
+  moveMotor(mBR, HIGH, 0.5);
 }
 void nw(){
   moveMotor(mFL, HIGH, 0);
-  moveMotor(mFR, HIGH, 0.25);
-  moveMotor(mBL, HIGH, 0.25);
+  moveMotor(mFR, HIGH, 0.5);
+  moveMotor(mBL, HIGH, 0.5);
   moveMotor(mBR, HIGH, 0);
 }
 void ne(){
-  moveMotor(mFL, HIGH, 0.25);
+  moveMotor(mFL, HIGH, 0.5);
   moveMotor(mFR, HIGH, 0);
   moveMotor(mBL, HIGH, 0);
-  moveMotor(mBR, HIGH, 0.25);
+  moveMotor(mBR, HIGH, 0.5);
 }
 void sw(){
-  moveMotor(mFL, LOW, 0.25);
+  moveMotor(mFL, LOW, 0.5);
   moveMotor(mFR, HIGH, 0);
   moveMotor(mBL, HIGH, 0);
-  moveMotor(mBR, LOW, 0.25);
+  moveMotor(mBR, LOW, 0.5);
 }
 void se(){
   moveMotor(mFL, HIGH, 0);
-  moveMotor(mFR, LOW, 0.25);
-  moveMotor(mBL, LOW, 0.25);
+  moveMotor(mFR, LOW, 0.5);
+  moveMotor(mBL, LOW, 0.5);
   moveMotor(mBR, HIGH, 0);
 }
 void allDirsTest(){

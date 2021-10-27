@@ -131,11 +131,11 @@ void loop() {
 
   
 /* Stuff below this was used in the past for debugging / lab / testing */  
-  getRadData();
+//  getRadData();
 //  lab6radioCheck();
 //    lab6radioCheckExtraData();  
 //  printStripes();
-//  allDirsTest();
+  allDirsTest();
 //  north();
 //  digitalWrite(aIn1_BR, HIGH);
 //  digitalWrite(aIn2_BR, LOW);

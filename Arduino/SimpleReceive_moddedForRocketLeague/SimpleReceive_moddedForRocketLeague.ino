@@ -24,6 +24,7 @@ char packet1[20];
 char packet2[20];
 int TXnum = 0;
 char TXnumChar = 0;
+char rPosXchar;
 int rPosX;
 int rPosY;
 int bPosX;
@@ -114,21 +115,30 @@ void loop()
       }
       
     }
-      Serial.print("packet1: ");
-      Serial.print(packet1);
-      Serial.print(", ");
-      Serial.print("packet2: ");
-      Serial.print(packet2);
-      Serial.println("]");
+//      Serial.print("packet1: ");
+//      Serial.print(packet1);
+//      Serial.print(", ");
+//      Serial.print("packet2: ");
+//      Serial.print(packet2);
+//      Serial.println("]");
       for (byte i = 0; i < radio.DATALEN; i++){
-        if (packet1[i] == ' ' && i<7){
-          if (packet1[i+1] != ' '){
-            TXnumChar += packet[i];
+//        if (packet1[i] == ' ' && i<7){ //find the beginning of the "TX#" data
+//          if (packet1[i+1] != ' '){
+//            TXnumChar += packet[i];
+//          }
+//        }
+          //R usually starts at index 11 or 12
+          if (packet1[i] == 'R'){
+            for (byte j = i; packet1[j] != ','; j++){
+              rPosXchar = rPosXchar (char)packet1[j];
+            }
           }
-        }
+        
       }
-      TXnum = packet1[5];
-      rPosX = packet1[
+      Serial.print("rPosXchar: ");
+      Serial.println(rPosXchar);
+      //TXnum = packet1[5];
+      //rPosX = packet1[
     // RSSI is the "Receive Signal Strength Indicator",
     // smaller numbers mean higher power.
     //Serial.print("], RSSI ");
