@@ -14,11 +14,11 @@ import cv2 as cv
 
 ##Initialize Positions
 posBallx = 1500
-posBally = 1000
+posBally = 2000
 posOppx = 500.0
 posOppy = 3200
 posRobx = 700
-posRoby = 500
+posRoby = 150
 posRobt = 0
 posTargetx = 2440/2
 posTargety = 3660
@@ -159,33 +159,52 @@ def defensePosition(): #Returns the point which is closest to the robot on a lin
 
         pose = np.dot(PA,m)/np.linalg.norm(m)**2*m + A
         point = (pose[0],pose[1],np.arctan2(pose[0],pose[1]))
-    else: point = (posProtectx,posBally,np.pi/2)
+    else: point = (posProtectx,posBally,np.pi/2) #go to goal, Can add more functionality
     return point
 
+def checkDefensive(): #Checks if the robot is close enough to the line from the ball to our goal
+    m = np.array([posBally-posProtecty,posProtectx-posBallx]) #Direction vector of line
+    A = np.array([posProtectx,posProtecty]) #Origin of line
+    P = np.array([posRobx,posRoby]) #Robot point
+    PA = A-P #From goal to rob
+    d = np.dot(m/np.linalg.norm(m),PA)
+
+    return d<50
+    
 ## Main Loop
 test = 1
 try:
-    while test != 0:
+    while test != 5:
         posOppy = posOppy - 1
-        if defense:
-            objective = defensePosition()
-            motorSpeed((goal2Speed(objective,1)))
-            updatePosRob()
-        else:
+        defense = posBally < 3660/2
+        if defense: #Ball is on our half
+            if checkDefensive(): #We are in a protective position
+                objective = scoringPosition() #Try to score
+                if positionCheck(objective): #Robot is touching ball
+                    motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10)))
+                    updatePosRob()
+                    updateBall()
+                else: #Robot is far from ball
+                    motorSpeed((goal2Speed(objective,10)))
+                    updatePosRob()
+            else: #We are not in a protective position
+                objective = defensePosition()
+                motorSpeed((goal2Speed(objective,0)))
+                updatePosRob()
+        else: #Ball is on their half
             objective = scoringPosition()
-            if positionCheck(objective):
+            if positionCheck(objective): #Robot is touching ball
                 motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10)))
                 updatePosRob()
                 updateBall()
-            else:
+            else: #Robot is far from ball
                 motorSpeed((goal2Speed(objective,5)))
                 updatePosRob()
         updateMap()
-        # test = test + 1
+        #test = test + 1
         if cv.waitKey(20) & 0xFF==ord('d'):
             break
-    print('Point')
-    print(defensePosition())
+        #time.sleep(100)
 except KeyboardInterrupt:
     print("turds")
     cv.destroyAllWindows()
