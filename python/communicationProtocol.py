@@ -10,13 +10,8 @@ posRobx = 700
 posRoby = 150
 posRobt = 0
 
-<<<<<<< HEAD
-ser = serial.Serial('COM4',9600) #Windows
-#ser = serial.Serial('\dev\ttyUSB*',9600) #Unix
-=======
-ser = serial.Serial('COM3',9600) #Windows serial port
+ser = serial.Serial('COM4',9600) #Windows serial port
 #ser = serial.Serial('\dev\ttyUSB*',9600) #Unix serial port
->>>>>>> e2bd2ac7b3f7fba8f3568c82b36f8d38bd64c453
 
 #List of Commands or functions
     #Input
@@ -171,16 +166,10 @@ def push(motorSpeedAbs,inA1,inA2): #pushes data TO the arduino from the pi
     ser.write(packet.encode('utf-8'))
     print(packet.encode('utf-8'))
 
-<<<<<<< HEAD
-speed = np.array([255, 216, 160, 122])
-ina1 = [False, True, False,  True]
-ina2 = [True, False,  True, False]
-push(speed,ina1,ina2)
-=======
-speed = np.array([255, 216, 160, 122]) #(TEST VALUES) indicates each of the four motor speeds in order
+speed = np.array([255, 216, 160, 122])  #(TEST VALUES) indicates each of the four motor speeds in order
 ina1 = [False, True, False,  True]  #values of the first gate of each motor driver
-ina2 = [True, False,  True, False]  #values of the second gate of each motor driver
->>>>>>> e2bd2ac7b3f7fba8f3568c82b36f8d38bd64c453
+ina2 = [True, False,  True, False] #values of the second gate of each motor driver
+push(speed,ina1,ina2)
 while True:
     # print(posRobx)
     # print(posRoby)
