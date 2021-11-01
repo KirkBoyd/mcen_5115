@@ -10,7 +10,7 @@ posRobx = 700
 posRoby = 150
 posRobt = 0
 
-ser = serial.Serial('COM3',9600) #Windows
+ser = serial.Serial('COM4',9600) #Windows
 #ser = serial.Serial('\dev\ttyUSB*',9600) #Unix
 
 #List of Commands or functions
@@ -164,12 +164,13 @@ def push(motorSpeedAbs,inA1,inA2):
         else: packet = packet + ">"
     
     ser.write(packet.encode('utf-8'))
+    print(packet.encode('utf-8'))
 
 speed = np.array([255, 216, 160, 122])
 ina1 = [False, True, False,  True]
 ina2 = [True, False,  True, False]
+push(speed,ina1,ina2)
 while True:
     # print(posRobx)
     # print(posRoby)
     pull()
-    push(speed,ina1,ina2)

@@ -16,10 +16,8 @@ void testLED(){
   delay(1000);                       // wait for a second
 }
 //void loop() {
-////  Serial.println(test);   // send the data
-////  delay(1000);                  // give the loop some break
-//
-//    Serial.readline()
+//  Serial.println(test);   // send the data
+//  delay(10);                  // give the loop some break
 //}
 
 /*
@@ -38,20 +36,19 @@ char cmdBuffer[cmdBuffLen + 1];
 
 uint8_t bufferIndex = 0;
 
-const size_t arrayOfIntsLen = 16; // number of ints to receive
+const size_t arrayOfIntsLen = 12; // number of ints to receive
 int arrayOfInts[arrayOfIntsLen];
 uint8_t arrayOfIntsIndex = 0;
 
 bool receiving = false;       // set to true when start marker is received, set to false when end marker is received
 bool commandReceived = false; // set to true when command separator is received (or if command buffer is full)
-
+//<MO0-rpm-in1-in2|MO1-rpm-in1-in2|MO2-rpm-in1-in2|MO3-rpm-in1-in2|>
 void loop()
 {
     int motor;
     if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it
-
         if (isWhiteSpace(serialByte))
             return; // Ignore whitespace
 
@@ -61,19 +58,15 @@ void loop()
             commandReceived = false;
             bufferIndex = 0;
             arrayOfIntsIndex = 0;
+            Serial.println("Start Marker");
             return;
         }
-        if (receiving)
-        { // If the start marker has been received
-            if (!commandReceived)
-            { // If the command hasn't been received yet
-                if (serialByte == COMMAND_SEP || serialByte == END_MARKER)
-                {                                  // If the command separator is received
+        if (receiving){ // If the start marker has been received
+            if (!commandReceived){ // If the command hasn't been received yet
+                if (serialByte == COMMAND_SEP || serialByte == END_MARKER){// If the command separator is received
                     cmdBuffer[bufferIndex] = '\0'; // Terminate the string in the buffer
-                    if (strcmp(cmdBuffer, "MO0") == 0)
-                    { // Check if the received string is "MO0"
+                    if (strcmp(cmdBuffer, "MO0") == 0){ // Check if the received string is "MO0"
                       motor = 0;
-                      testLED();
                     }
                     else if(strcmp(cmdBuffer, "MO1") == 0)
                     {
@@ -105,8 +98,7 @@ void loop()
                 { // If the command buffer is full
                 }
             }
-            else if (serialByte == VALUE_SEP || serialByte == END_MARKER)
-            { // If the value separator or the end marker is received
+            else if (serialByte == VALUE_SEP || serialByte == END_MARKER){ // If the value separator or the end marker is received
                 if (bufferIndex == 0)
                 { // If the buffer is still empty
                 }
@@ -150,6 +142,7 @@ void parseInt(char *input)
     {
         return;
     }
+    Serial.println(input);
     int value = atoi(input);
     arrayOfInts[arrayOfIntsIndex++] = value;
 }
