@@ -10,7 +10,7 @@ posRobx = 700
 posRoby = 150
 posRobt = 0
 
-ser = serial.Serial('COM4',9600) #Windows serial port
+ser = serial.Serial('COM5',9600) #Windows serial port
 #ser = serial.Serial('\dev\ttyUSB*',9600) #Unix serial port
 
 #List of Commands or functions
@@ -155,13 +155,19 @@ def isWhiteSpace(character):
 def push(motorSpeedAbs,inA1,inA2): #pushes data TO the arduino from the pi
 
     #<MO0-rpm-in1-in2|MO1-rpm-in1-in2|MO2-rpm-in1-in2|MO3-rpm-in1-in2|>
-    packet = "<"
-    motors = ["MO0","MO1","MO2","MO3"]
+    motor = ""
+    outA1 = ""
+    outA2 = ""
     for i in range(4):
-        packet = packet + motors[i] + "-" + str(motorSpeedAbs[i]) + "-" + str(inA1[i]) + "-" + str(inA2[i])
+        motor = motor + str(motorSpeedAbs[i])
+        outA1 = outA1 + str(int(inA1[i]==True))
+        outA2 = outA2 + str(int(inA2[i]==True))
         if i < 3:
-            packet = packet + "|"
-        else: packet = packet + ">"
+            motor = motor + "-"
+            outA1 = outA1 + "-"
+            outA2 = outA2 + "-"
+        
+        packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
     
     ser.write(packet.encode('utf-8'))
     print(packet.encode('utf-8'))

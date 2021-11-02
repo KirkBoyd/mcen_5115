@@ -42,10 +42,11 @@ uint8_t arrayOfIntsIndex = 0;
 
 bool receiving = false;       // set to true when start marker is received, set to false when end marker is received
 bool commandReceived = false; // set to true when command separator is received (or if command buffer is full)
-//<MO0-rpm-in1-in2|MO1-rpm-in1-in2|MO2-rpm-in1-in2|MO3-rpm-in1-in2|>
+//<MOT|255-216-160-122-0-1-0-1-1-0-1-0> // Packet Format
+
+
 void loop()
 {
-    int motor;
     if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it
@@ -58,31 +59,16 @@ void loop()
             commandReceived = false;
             bufferIndex = 0;
             arrayOfIntsIndex = 0;
-            Serial.println("Start Marker");
             return;
         }
         if (receiving){ // If the start marker has been received
             if (!commandReceived){ // If the command hasn't been received yet
                 if (serialByte == COMMAND_SEP || serialByte == END_MARKER){// If the command separator is received
                     cmdBuffer[bufferIndex] = '\0'; // Terminate the string in the buffer
-                    if (strcmp(cmdBuffer, "MO0") == 0){ // Check if the received string is "MO0"
-                      motor = 0;
+                    if (strcmp(cmdBuffer, "MOT") == 0){ // Check if the received string is "MOT"
                     }
-                    else if(strcmp(cmdBuffer, "MO1") == 0)
-                    {
-                      motor = 1;
-                    }
-                    else if(strcmp(cmdBuffer, "MO2") == 0)
-                    {
-                      motor = 2;
-                    }
-                    else if(strcmp(cmdBuffer, "MO3") == 0)
-                    {
-                      motor = 3;
-                    }
-                    if (serialByte == END_MARKER)
-                    { // If the end marker is received
-                        receiving = false; // Stop receivinng
+                    if (strcmp(cmdBuffer, "STOP") == 0){ // Check if the received string is "MO0"
+                      Serial.println("STOP");
                     }
                     else
                     {
@@ -111,6 +97,7 @@ void loop()
                 if (serialByte == END_MARKER)
                 { // If the end marker is received
                     receiving = false; // Stop receivinng
+                    Serial.println(arrayOfInts[0]);
                 }
             }
             else if (bufferIndex < buffLen)
@@ -142,7 +129,6 @@ void parseInt(char *input)
     {
         return;
     }
-    Serial.println(input);
     int value = atoi(input);
     arrayOfInts[arrayOfIntsIndex++] = value;
 }

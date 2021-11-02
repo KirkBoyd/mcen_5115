@@ -3,8 +3,11 @@ import time
 from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
 import cv2 as cv
+import serial
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
+
+ser = serial.Serial('COM5',9600) #Windows serial port
 
 ## World Frame
 #All units are in mm
@@ -170,7 +173,28 @@ def checkDefensive(): #Checks if the robot is close enough to the line from the 
     d = np.dot(m/np.linalg.norm(m),PA)
 
     return d<50
+def push(data): #pushes data TO the arduino from the pi
+    motorSpeedAbs = data[0]
+    inA1 = data[1]
+    inA2 = data[2]
+    #<MO0-rpm-in1-in2|MO1-rpm-in1-in2|MO2-rpm-in1-in2|MO3-rpm-in1-in2|>
+    motor = ""
+    outA1 = ""
+    outA2 = ""
+    for i in range(4):
+        motor = motor + str(motorSpeedAbs[i])
+        outA1 = outA1 + str(int(inA1[i]==True))
+        outA2 = outA2 + str(int(inA2[i]==True))
+        if i < 3:
+            motor = motor + "-"
+            outA1 = outA1 + "-"
+            outA2 = outA2 + "-"
+        
+        packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
     
+    ser.write(packet.encode('utf-8'))
+    print(packet.encode('utf-8'))
+
 ## Main Loop
 test = 1
 try:
@@ -181,24 +205,24 @@ try:
             if checkDefensive(): #We are in a protective position
                 objective = scoringPosition() #Try to score
                 if positionCheck(objective): #Robot is touching ball
-                    motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10)))
+                    push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
                     updatePosRob()
                     updateBall()
                 else: #Robot is far from ball
-                    motorSpeed((goal2Speed(objective,10)))
+                    push(motorSpeed((goal2Speed(objective,10))))
                     updatePosRob()
             else: #We are not in a protective position
                 objective = defensePosition()
-                motorSpeed((goal2Speed(objective,0)))
+                push(motorSpeed((goal2Speed(objective,0))))
                 updatePosRob()
         else: #Ball is on their half
             objective = scoringPosition()
             if positionCheck(objective): #Robot is touching ball
-                motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10)))
+                push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
                 updatePosRob()
                 updateBall()
             else: #Robot is far from ball
-                motorSpeed((goal2Speed(objective,5)))
+                push(motorSpeed((goal2Speed(objective,5))))
                 updatePosRob()
         updateMap()
         #test = test + 1

@@ -4,7 +4,10 @@
 //byte response[2]; // this data is sent to PI
 //volatile short LDR_value; // Global Declaration
 //const int LDR_pin=A9; //pin to which LDR is connected A0 is analog A0 pin 
-
+#define START_MARKER '<'
+#define END_MARKER '>'
+#define COMMAND_SEP '|'
+#define VALUE_SEP '-'
 String input;
 
 #define stripeR 2 //teensy digital pin 2
@@ -77,28 +80,6 @@ bool commandReceived = false; // set to true when command separator is received 
 
 
 void loop() {
-  printStripes();
-//  allDirsTest();
-        
-  //while(digitalRead(stripeMid) == LOW){
-          Serial.println("in whiel");
-    //delay(1000);
-    if(digitalRead(stripeR) == LOW){ 
-      east();
-      Serial.println("tyna go east");
-    }
-    else if(digitalRead(stripeL) == LOW){ 
-                      west();
-          Serial.println("tyna go weast"); 
-    }
-    else{ 
-              north(); 
-            Serial.println("tyna go north");
-    }
-    
-  //}//end while(middle == 0)
-  //stop();
-
   if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it
@@ -162,9 +143,10 @@ void loop() {
         }           // end if (receiving)
     }               // end if (Serial.available() > 0)
 
-    motors = arrayOfInts[0:3];
-    inA1 = arrayOfInts[4:7];
-    inA2 = arrayOfInts[8:11];
+
+    for(int i =0; i<4; i++){
+      moveMotor(i,arrayOfInts[i+4]==1,arrayOfInts[i+8]==1,arrayOfInts[i]);
+    }
 }//end void loop
 
 bool isWhiteSpace(char character)
