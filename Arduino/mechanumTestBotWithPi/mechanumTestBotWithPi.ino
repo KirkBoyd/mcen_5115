@@ -102,6 +102,9 @@ void loop() {
                     }
                     if (strcmp(cmdBuffer, "STOP") == 0){ // Check if the received string is "MO0"
                       Serial.println("STOP");
+                      for(int i =0; i < arrayOfIntsLen; i++){
+                        arrayOfInts[i] = 0;
+                      }
                     }
                     else
                     {

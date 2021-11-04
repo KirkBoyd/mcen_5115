@@ -7,22 +7,27 @@ import serial
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
 
-#ser = serial.Serial('COM5',9600) #Windows serial port
-connected = False
+ser = serial.Serial('COM5',9600) #Windows serial port
+connected = True
 ## World Frame
 #All units are in mm
 #The map is 8'x12'
 #The map is 2440mm x 3660mm
 #x is width y is height
 
+# Time Step Stuff
+oldTime = time.time()
+newTime = time.time()
+dt = newTime-oldTime
+
 ##Initialize Positions
-posBallx = 1500
+posBallx = 1220
 posBally = 2000
 posOppx = 500.0
 posOppy = 3200
-posRobx = 700
-posRoby = 150
-posRobt = 0
+posRobx = 2440/4
+posRoby =3660/6
+posRobt = np.pi/2
 posTargetx = 2440/2
 posTargety = 3660
 posProtectx = 2440/2 #Our goal
@@ -33,10 +38,17 @@ robotVelocity = np.empty((3,1),int)
 defense = False
 
 ## Robot Parameters
-r = 97/2 # radius in mm
-ly = 100 # Distance from center of robot to center of wheel in y direction
-lx = 100 # Distance from center of robot to center of wheel in x direction
-maxRPM = 1000
+## Full Scale
+# r = 97/2 # radius in mm
+# ly = 100 # Distance from center of robot to center of wheel in y direction
+# lx = 100 # Distance from center of robot to center of wheel in x direction
+# maxRPM = 1000
+
+## Test Bot
+r = 33
+ly = 69
+lx = 62
+maxRPM = 600
 
 ## Plotting
 mapScale = .1 #1px = 1cm
@@ -50,12 +62,16 @@ MAP = cv.resize(MAP,dimensions, interpolation=cv.INTER_LINEAR)
 ## Functions
 def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
     global robotMotorSpeed
-    T = np.array([[1,-1,-lx-ly],[1,1,lx+ly],[1,1,-lx-ly],[1,-1,lx+ly]])/r #Translation matrix
+    #print(V)
+    T = np.array([[1,-1,-lx-ly],
+                  [1,1,lx+ly],
+                  [1,1,-lx-ly],
+                  [1,-1,lx+ly]])/r #Translation matrix
     motorSpeed = np.matmul(T,V) #Forward Kinematics
     motorSpeed = motorSpeed*maxRPM/max(abs(motorSpeed)) #Normalize rpm
     robotMotorSpeed = motorSpeed
     motorSpeed = [motorSpeed[0][0],motorSpeed[1][0],motorSpeed[2][0],motorSpeed[3][0]]
-    motorSpeedNorm = np.interp(motorSpeed,[-1000, 1000],[-255,255]) #Normalize rpm to 255 maximum value
+    motorSpeedNorm = np.interp(motorSpeed,[-maxRPM, maxRPM],[-255,255]) #Normalize rpm to 255 maximum value
     motorSpeedOut = motorSpeedNorm.astype('int32') #Convert motor rpm to integer
     inA1 = motorSpeedNorm >= 0 #Logic for direction
     inA2 = motorSpeedNorm <= 0 #Logic for direction
@@ -67,7 +83,9 @@ def world2Robot(cords): #Function to convert world coordinates to robot coordina
     dY = cords[1] -posRoby
     wTheta = np.arctan2(dY,dX)
     #print(wTheta)
-    T = np.array([[-np.cos(posRobt),np.sin(posRobt),0],[np.sin(posRobt),np.cos(posRobt),0],[0,0,1]]) #Transformation matrix
+    T = np.array([[-np.cos(posRobt),np.sin(posRobt),0],
+                  [np.sin(posRobt),np.cos(posRobt),0],
+                  [0,0,1]]) #Transformation matrix
     delta = np.array([[dX],[dY],[wTheta]]).astype(float)
     return np.matmul(T,delta)
 
@@ -80,19 +98,23 @@ def robot2World(cords): #Takes in robot coordinates (rx, ry, rt) and returns wor
 def goal2Speed(goal,bias): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
     robotGoalCords = world2Robot(goal)
     vx = robotGoalCords[0]
-    vy = robotGoalCords[1]
+    vy = -robotGoalCords[1]
     vt = (goal[2] - posRobt)*bias
     
     return [vx,vy,vt]
 
 def updateVelocity(): #Update the global velocity of the robot for positioning data
     global robotVelocity
-    T = np.array([[1,1,1,1],[-1,1,1,-1],[-1/(lx+ly),1/(lx+ly),-1/(lx+ly),1/(lx+ly)]])/r #Translation matrix
+    T = np.array([[1,1,1,1],
+                  [-1,1,1,-1],
+                  [-1/(lx+ly),1/(lx+ly),-1/(lx+ly),1/(lx+ly)]])/r #Translation matrix
     tempVelocity = np.dot(T,robotMotorSpeed) #Inverse Kinematics
+    #print(tempVelocity)
+    #print(posRobt)
     vx = tempVelocity[0]*np.cos(posRobt)-tempVelocity[1]*np.sin(posRobt)
     vy = tempVelocity[0]*np.sin(posRobt)+tempVelocity[1]*np.cos(posRobt)
     vt = tempVelocity[2]
-    robotVelocity = [-vx[0],vy[0],vt[0]] #THIS SHIT IS FUCKED (IDK WHY ITS -vx)
+    robotVelocity = [vx[0],vy[0],vt[0]]
     pass
 
 def updatePosRob(): #Updates the position based on the global robot velocity values
@@ -101,12 +123,24 @@ def updatePosRob(): #Updates the position based on the global robot velocity val
     global posRobt
 
     updateVelocity()
-    vScale = 1/10
-    posRobx = posRobx + robotVelocity[0]*vScale
-    posRoby = posRoby + robotVelocity[1]*vScale
-    posRobt = posRobt + robotVelocity[2]*vScale
+    getTime()
+    print(dt)
+    #print(robotVelocity)
+    #print(posRobx)
+    posRobx = posRobx + robotVelocity[0]*dt
+    posRoby = posRoby + robotVelocity[1]*dt
+    posRobt = posRobt + robotVelocity[2]*dt
     pass
 
+def getTime():
+    global oldTime
+    global newTime
+    global dt
+
+    newTime = time.time()
+    dt = newTime - oldTime
+    oldTime = newTime
+    
 def robotTriangle(): #Returns the points of a triangle corresponding to the robot's position and orientation.
     L = 250
     p1 = (L*np.sqrt(3)/3,0)
@@ -227,8 +261,12 @@ try:
         updateMap()
         #test = test + 1
         if cv.waitKey(20) & 0xFF==ord('d'):
+            stop = "<STOP>"
+            ser.write(stop.encode('utf-8'))
             break
         #time.sleep(100)
 except KeyboardInterrupt:
     print("turds")
+    stop = "<STOP>"
+    ser.write(stop.encode('utf-8'))
     cv.destroyAllWindows()
