@@ -6,7 +6,6 @@ import cv2 as cv
 import serial
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
-
 ser = serial.Serial('COM5',9600) #Windows serial port
 connected = True
 ## World Frame
@@ -48,18 +47,16 @@ defense = False
 r = 33
 ly = 69
 lx = 62
-maxRPM = 600
+maxRPM = 16.66 #Actually in rad/s Dont want to update all vars
 
 ## Plotting
 mapScale = .1 #1px = 1cm
-MAP = cv.imread("python\Map.PNG") #Read in picture of map
+MAP = cv.imread("Code\python\Map.PNG") #Read in picture of map
 width = int(8*305*mapScale)
 height = int(12*305*mapScale)
 dimensions = (width,height)
 MAP = cv.resize(MAP,dimensions, interpolation=cv.INTER_LINEAR)
 
-
-## Functions
 def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
     global robotMotorSpeed
     #print(V)
@@ -105,11 +102,11 @@ def goal2Speed(goal,bias): #Function to get robot velocity based off the curr ro
 
 def updateVelocity(): #Update the global velocity of the robot for positioning data
     global robotVelocity
-    T = np.array([[1,1,1,1],
-                  [-1,1,1,-1],
-                  [-1/(lx+ly),1/(lx+ly),-1/(lx+ly),1/(lx+ly)]])/r #Translation matrix
+    T = r/4*np.array([[1,1,1,1],
+                      [-1,1,1,-1],
+                      [-1/(lx+ly),1/(lx+ly),-1/(lx+ly),1/(lx+ly)]]) #Translation matrix
     tempVelocity = np.dot(T,robotMotorSpeed) #Inverse Kinematics
-    #print(tempVelocity)
+    print(tempVelocity)
     #print(posRobt)
     vx = tempVelocity[0]*np.cos(posRobt)-tempVelocity[1]*np.sin(posRobt)
     vy = tempVelocity[0]*np.sin(posRobt)+tempVelocity[1]*np.cos(posRobt)
@@ -124,7 +121,7 @@ def updatePosRob(): #Updates the position based on the global robot velocity val
 
     updateVelocity()
     getTime()
-    print(dt)
+    #print(dt)
     #print(robotVelocity)
     #print(posRobx)
     posRobx = posRobx + robotVelocity[0]*dt
@@ -207,11 +204,12 @@ def checkDefensive(): #Checks if the robot is close enough to the line from the 
     d = np.dot(m/np.linalg.norm(m),PA)
 
     return d<50
+
 def push(data): #pushes data TO the arduino from the pi
     motorSpeedAbs = data[0]
     inA1 = data[1]
     inA2 = data[2]
-    #<MO0-rpm-in1-in2|MO1-rpm-in1-in2|MO2-rpm-in1-in2|MO3-rpm-in1-in2|>
+    #<MOT|motor-rpm-in1-in2>
     motor = ""
     outA1 = ""
     outA2 = ""
@@ -227,9 +225,9 @@ def push(data): #pushes data TO the arduino from the pi
         packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
     if connected:
         ser.write(packet.encode('utf-8'))
-    #print(packet.encode('utf-8'))
+    print(packet.encode('utf-8'))
 
-## Main Loop
+
 test = 1
 try:
     while test != 5:

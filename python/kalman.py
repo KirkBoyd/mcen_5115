@@ -3,7 +3,6 @@ from numpy.random import randn
 import time
 from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
-from filterpy.kalman import KalmanFilter
 import cv2 as cv
 import serial
 ## Testing git
@@ -194,7 +193,11 @@ def push(data): #pushes data TO the arduino from the pi
     
     ser.write(packet.encode('utf-8'))
     print(packet.encode('utf-8'))
-
+def kalman(H,Q,R,dt):
+    F = np.array([[1, dt, 0, 0,],   #x    Design State Transformation Matrix
+                  [0, 0, 1, dt],    #y
+                  [0, 1, 0, 0]      #vx
+                  [0, 0, 0, 1]])    #vy
 
 ## Main Loop
 test = 1
