@@ -6,7 +6,22 @@ import cv2 as cv
 import serial
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
-ser = serial.Serial('COM5',9600) #Windows serial port
+ser = serial.Serial('COM6',9600) #Windows serial port
+# test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
+# test2 = "<MOT|255-255-255-255-0-0-0-0-1-1-1-1>"
+# try:
+#     while True:
+#         ser.write(test1.encode('utf-8'))
+#         time.sleep(1)
+#         ser.write(test2.encode('utf-8'))
+#         time.sleep(1)
+# except KeyboardInterrupt:
+#     print("turds")
+#     stop = "<STOP>"
+#     ser.write(stop.encode('utf-8'))
+#     exit()
+
+time.sleep(5)
 connected = True
 ## World Frame
 #All units are in mm
@@ -36,22 +51,22 @@ robotMotorSpeed = np.empty((1,4),float)
 robotVelocity = np.empty((3,1),int)
 defense = False
 
-## Robot Parameters
-## Full Scale
-# r = 97/2 # radius in mm
-# ly = 100 # Distance from center of robot to center of wheel in y direction
-# lx = 100 # Distance from center of robot to center of wheel in x direction
-# maxRPM = 1000
+# Robot Parameters
+# Full Scale
+r = 97/2 # radius in mm
+ly = 90 # Distance from center of robot to center of wheel in y direction
+lx = 125 # Distance from center of robot to center of wheel in x direction
+maxRPM = 150*0.104719755
 
-## Test Bot
-r = 33
-ly = 69
-lx = 62
-maxRPM = 16.66 #Actually in rad/s Dont want to update all vars
+# ## Test Bot
+# r = 33
+# ly = 69
+# lx = 62
+#maxRPM = 5#Actually in rad/s Dont want to update all vars
 
 ## Plotting
 mapScale = .1 #1px = 1cm
-MAP = cv.imread("Code\python\Map.PNG") #Read in picture of map
+MAP = cv.imread("python\Map.PNG") #Read in picture of map
 width = int(8*305*mapScale)
 height = int(12*305*mapScale)
 dimensions = (width,height)
@@ -229,6 +244,7 @@ def push(data): #pushes data TO the arduino from the pi
 
 
 test = 1
+ser.flush()
 try:
     while test != 5:
         posOppy = posOppy - 1
