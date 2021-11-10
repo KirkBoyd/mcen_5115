@@ -243,45 +243,166 @@ def push(data): #pushes data TO the arduino from the pi
         ser.write(packet.encode('utf-8'))
         #print('Packet Sent')
 
+def pull(): #pulls (or receives) data from the arduino on the pi
+    global posRobx
+    global posRoby
+    global posRobt
+    global posOppx
+    global posOppy
+    global posBallx
+    global posBally
 
-test = 1
-ser.flush()
-try:
-    while test != 5:
-        posOppy = posOppy - 1
-        defense = posBally < 3660/2
-        if defense: #Ball is on our half
-            if checkDefensive(): #We are in a protective position
-                objective = scoringPosition() #Try to score
+
+    START_MARKER = '<'  #marks the beginning of a data packet
+    END_MARKER = '>'    #marks the end of a data packet
+    COMMAND_SEP = '|'   #marks a separation between commands within a packet
+    VALUE_SEP = '-'     #??
+
+    receiving = False   #set to true when start marker is received, set to false when end marker is received
+    commandReceived = False    #set to true when command separator is received (or if command buffer is full)
+
+    cmdLen = 3 #length of command to recieve
+    cmdBuffer = ""
+
+    index = 0
+    cmdIndex = 0
+    if (ser.in_waiting > 0):
+        packet = ser.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
+        print(packet) #print what was received from the serial port
+        if (isWhiteSpace(packet)):
+            return # Ignore whitespace
+        while index < len(packet): #step through each byte of the packet
+            serialByte = packet[index] #the byte we are looking at is the one currently at index
+            # print(serialByte)
+            if (isWhiteSpace(serialByte)): #ignore whitespace again if found
+                return
+            if serialByte == START_MARKER: #if start marker is found
+                receiving = True #record that a packet is beginning to be received
+                commandReceived = True #record that a packet was in fact received
+                index = index + 1
+                continue
+            if(receiving): #if looking for a packet
+                serialByte = packet[index]
+                if not commandReceived:
+                    if (serialByte == COMMAND_SEP): #If the command separator is received
+                        index = index + 1 #count forward one because there is not a command in this byte
+                        commandReceived = True
+                        continue
+                    elif (serialByte == END_MARKER): #If end marker is reached
+                        return
+                    else:
+                        index = index + 1
+                else:
+                    cmdBuffer = packet[index:index+3]
+                    index = index + 4
+                    if (cmdBuffer == "ROB"): #Check if the received string is "ROB"
+                        print("ROB") #this is for position of the robot
+                        while packet[index+cmdIndex] != VALUE_SEP:
+                            cmdIndex = cmdIndex + 1
+                        posRobx= int(packet[index:index+cmdIndex])
+                        index = index + cmdIndex + 1
+                        cmdIndex = 0
+                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
+                            cmdIndex = cmdIndex + 1
+                        posRoby= int(packet[index:index+cmdIndex])
+                        cmdIndex = 0
+                        commandReceived = False
+                    elif (cmdBuffer == "IMU"): #Check if the received string is "IMU"
+#                        while packet[index+cmdIndex] != VALUE_SEP:
+#                            cmdIndex = cmdIndex + 1
+#                        velRoby= int(packet[index:index+cmdIndex])
+#                        index = index + cmdIndex + 1
+#                        cmdIndex = 0
+#                        while packet[index+cmdIndex] != VALUE_SEP:
+#                            cmdIndex = cmdIndex + 1
+#                        velRoby= int(packet[index:index+cmdIndex])
+#                        index = index + cmdIndex + 1
+#                        cmdIndex = 0
+                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
+                            cmdIndex = cmdIndex + 1
+                        posRobt= int(packet[index:index+cmdIndex])
+                        cmdIndex = 0
+                        commandReceived = False
+                    elif (cmdBuffer == "OPP"): #Check if the received string is "OPP" #which indicates tracking the position of opponent
+                        while packet[index+cmdIndex] != VALUE_SEP:
+                            cmdIndex = cmdIndex + 1
+                        posOppx= int(packet[index:index+cmdIndex])
+                        index = index + cmdIndex + 1
+                        cmdIndex = 0
+                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
+                            cmdIndex = cmdIndex + 1
+                        posOppy= int(packet[index:index+cmdIndex])
+                        cmdIndex = 0
+                        commandReceived = False
+                    elif (cmdBuffer == "BAL"): #Check if the received string is "BAL" #tracking position of the ball
+                        while packet[index+cmdIndex] != VALUE_SEP:
+                            cmdIndex = cmdIndex + 1
+                        posBallx= int(packet[index:index+cmdIndex])
+                        index = index + cmdIndex + 1
+                        cmdIndex = 0
+                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
+                            cmdIndex = cmdIndex + 1
+                        posBally= int(packet[index:index+cmdIndex])
+                        cmdIndex = 0
+                        commandReceived = False
+                    else:
+                        print("Unknown command")
+                        print(cmdBuffer)
+                        commandReceived = False
+
+def isWhiteSpace(character):
+    if (character == ' '):
+        return True
+    if (character == '\r'):
+        return True
+    if (character == '\n'):
+        return True
+    return False
+
+def main():
+    test = 1
+    ser.flush()
+    try:
+        while test != 5:
+            posOppy = posOppy - 1
+            defense = posBally < 3660/2
+            if defense: #Ball is on our half
+                if checkDefensive(): #We are in a protective position
+                    objective = scoringPosition() #Try to score
+                    if positionCheck(objective): #Robot is touching ball
+                        push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
+                        updatePosRob()
+                        updateBall()
+                    else: #Robot is far from ball
+                        push(motorSpeed((goal2Speed(objective,10))))
+                        updatePosRob()
+                else: #We are not in a protective position
+                    objective = defensePosition()
+                    push(motorSpeed((goal2Speed(objective,0))))
+                    updatePosRob()
+            else: #Ball is on their half
+                objective = scoringPosition()
                 if positionCheck(objective): #Robot is touching ball
                     push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
                     updatePosRob()
                     updateBall()
                 else: #Robot is far from ball
-                    push(motorSpeed((goal2Speed(objective,10))))
+                    push(motorSpeed((goal2Speed(objective,5))))
                     updatePosRob()
-            else: #We are not in a protective position
-                objective = defensePosition()
-                push(motorSpeed((goal2Speed(objective,0))))
-                updatePosRob()
-        else: #Ball is on their half
-            objective = scoringPosition()
-            if positionCheck(objective): #Robot is touching ball
-                push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
-                updatePosRob()
-                updateBall()
-            else: #Robot is far from ball
-                push(motorSpeed((goal2Speed(objective,5))))
-                updatePosRob()
-        #updateMap()
-        #test = test + 1
-        #if cv.waitKey(20) & 0xFF==ord('d'):
-        #    stop = "<STOP>"
-        #    ser.write(stop.encode('utf-8'))
-        #    break
-        #time.sleep(100)
-except KeyboardInterrupt:
-    print("turds")
-    stop = "<STOP>"
-    ser.write(stop.encode('utf-8'))
-    #cv.destroyAllWindows()
+            #updateMap()
+            #test = test + 1
+            #if cv.waitKey(20) & 0xFF==ord('d'):
+            #    stop = "<STOP>"
+            #    ser.write(stop.encode('utf-8'))
+            #    break
+            #time.sleep(100)
+    except KeyboardInterrupt:
+        print("turds")
+        stop = "<STOP>"
+        ser.write(stop.encode('utf-8'))
+        #cv.destroyAllWindows()
+
+def rotationTest():
+    pull()
+    goal = [posRobx,posRoby,posRobt]
+    
