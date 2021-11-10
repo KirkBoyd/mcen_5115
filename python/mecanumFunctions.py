@@ -1,12 +1,12 @@
 import numpy as np
 import time
-from matplotlib import pyplot as plt
-from matplotlib.patches import Polygon
-import cv2 as cv
+#import cv2 as cv
 import serial
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
-ser = serial.Serial('COM6',9600) #Windows serial port
+#ser = serial.Serial('COM6',9600) #Windows serial port
+ser = serial.Serial('/dev/ttyACM0',9600) #Unix serial port
+print(ser.name)
 # test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
 # test2 = "<MOT|255-255-255-255-0-0-0-0-1-1-1-1>"
 # try:
@@ -65,12 +65,12 @@ maxRPM = 150*0.104719755
 #maxRPM = 5#Actually in rad/s Dont want to update all vars
 
 ## Plotting
-mapScale = .1 #1px = 1cm
-MAP = cv.imread("python\Map.PNG") #Read in picture of map
-width = int(8*305*mapScale)
-height = int(12*305*mapScale)
-dimensions = (width,height)
-MAP = cv.resize(MAP,dimensions, interpolation=cv.INTER_LINEAR)
+#mapScale = .1 #1px = 1cm
+#MAP = cv.imread("python\Map.PNG") #Read in picture of map
+#width = int(8*305*mapScale)
+#height = int(12*305*mapScale)
+#dimensions = (width,height)
+#MAP = cv.resize(MAP,dimensions, interpolation=cv.INTER_LINEAR)
 
 def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
     global robotMotorSpeed
@@ -82,7 +82,7 @@ def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
     motorSpeed = np.matmul(T,V) #Forward Kinematics
     motorSpeed = motorSpeed*maxRPM/max(abs(motorSpeed)) #Normalize rpm
     robotMotorSpeed = motorSpeed
-    motorSpeed = [motorSpeed[0][0],motorSpeed[1][0],motorSpeed[2][0],motorSpeed[3][0]]
+    motorSpeed = [motorSpeed[0],motorSpeed[1],motorSpeed[2],motorSpeed[3]]
     motorSpeedNorm = np.interp(motorSpeed,[-maxRPM, maxRPM],[-255,255]) #Normalize rpm to 255 maximum value
     motorSpeedOut = motorSpeedNorm.astype('int32') #Convert motor rpm to integer
     inA1 = motorSpeedNorm >= 0 #Logic for direction
@@ -113,7 +113,7 @@ def goal2Speed(goal,bias): #Function to get robot velocity based off the curr ro
     vy = -robotGoalCords[1]
     vt = (goal[2] - posRobt)*bias
     
-    return [vx,vy,vt]
+    return [vx[0],vy[0],vt]
 
 def updateVelocity(): #Update the global velocity of the robot for positioning data
     global robotVelocity
@@ -121,12 +121,12 @@ def updateVelocity(): #Update the global velocity of the robot for positioning d
                       [-1,1,1,-1],
                       [-1/(lx+ly),1/(lx+ly),-1/(lx+ly),1/(lx+ly)]]) #Translation matrix
     tempVelocity = np.dot(T,robotMotorSpeed) #Inverse Kinematics
-    print(tempVelocity)
+    #print(tempVelocity)
     #print(posRobt)
     vx = tempVelocity[0]*np.cos(posRobt)-tempVelocity[1]*np.sin(posRobt)
     vy = tempVelocity[0]*np.sin(posRobt)+tempVelocity[1]*np.cos(posRobt)
     vt = tempVelocity[2]
-    robotVelocity = [vx[0],vy[0],vt[0]]
+    robotVelocity = [vx,vy,vt]
     pass
 
 def updatePosRob(): #Updates the position based on the global robot velocity values
@@ -239,8 +239,9 @@ def push(data): #pushes data TO the arduino from the pi
         
         packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
     if connected:
+        print(packet.encode('utf-8'))
         ser.write(packet.encode('utf-8'))
-    print(packet.encode('utf-8'))
+        #print('Packet Sent')
 
 
 test = 1
@@ -272,15 +273,15 @@ try:
             else: #Robot is far from ball
                 push(motorSpeed((goal2Speed(objective,5))))
                 updatePosRob()
-        updateMap()
+        #updateMap()
         #test = test + 1
-        if cv.waitKey(20) & 0xFF==ord('d'):
-            stop = "<STOP>"
-            ser.write(stop.encode('utf-8'))
-            break
+        #if cv.waitKey(20) & 0xFF==ord('d'):
+        #    stop = "<STOP>"
+        #    ser.write(stop.encode('utf-8'))
+        #    break
         #time.sleep(100)
 except KeyboardInterrupt:
     print("turds")
     stop = "<STOP>"
     ser.write(stop.encode('utf-8'))
-    cv.destroyAllWindows()
+    #cv.destroyAllWindows()
