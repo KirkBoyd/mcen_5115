@@ -1,18 +1,15 @@
-//#include <Wire.h>  // Library which contains functions to have I2C Communication
-//#define SLAVE_ADDRESS 0x40 // Define the I2C address to Communicate to Uno
-//
-//byte response[2]; // this data is sent to PI
-//volatile short LDR_value; // Global Declaration
-//const int LDR_pin=A9; //pin to which LDR is connected A0 is analog A0 pin 
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
 #define START_MARKER '<'
 #define END_MARKER '>'
 #define COMMAND_SEP '|'
 #define VALUE_SEP '-'
-String input;
+String input,str;
+sensors_event_t magEvent; //BNO055 magnetic data
 
-#define stripeR 2 //teensy digital pin 2
-#define stripeL 3 //
-#define stripeMid 4 //
 #define aIn1_f 39//teensy pin 39
 #define aIn2_f 38//teensy pin 38
 #define pwmA_f 14//teensy pin 14 // speed for front left motor
@@ -25,16 +22,19 @@ String input;
 #define bIn1_b 17//teensy pin 17
 #define bIn2_b 22//teensy pin 22
 #define pwmB_b 33//teensy pin 33 //speed for back right motor
-#define mFr 1
-#define mFl 2
-#define mRr 3
-#define mRl 4
-#define ledPin 13
 int speedPin = 0;
 int ctrl_1 = 0;
 int ctrl_2 = 0;
 int speedRatio = 0;
 boolean on = false;
+
+/* Set the delay between fresh samples */
+uint16_t BNO055_SAMPLERATE_DELAY_MS = 100;
+
+// Check I2C device address and correct line below (by default address is 0x29 or 0x28)
+//                                   id, address
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+
 
 void setup() {
   pinMode(aIn1_f, OUTPUT);
@@ -49,18 +49,18 @@ void setup() {
   pinMode(bIn1_b, OUTPUT);
   pinMode(bIn2_b, OUTPUT);
   pinMode(pwmB_b, OUTPUT);
-  pinMode(stripeL, INPUT);
-  pinMode(stripeMid, INPUT);
-  pinMode(stripeR, INPUT);
-  Serial.begin(9600);
-//  Wire.begin(SLAVE_ADDRESS); // this will begin I2C Connection with 0x40 address
-//  Wire.onRequest(sendData); // sendData is funtion called when Pi requests data
-//  pinMode(LDR_pin,INPUT);
-//  Wire.begin(0x8);                // join i2c bus with address #8
-//  Wire.onReceive(receiveEvent); // register event
-//  pinMode(ledPin, OUTPUT);
-//  digitalWrite(ledPin, LOW); // turn it off
-//  Serial.println("Awaiting Serial Input...");
+  Serial.begin(38400);
+
+  /* Initialise the sensor */
+  if (!bno.begin())
+  {
+    /* There was a problem detecting the BNO055 ... check your connections */
+    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    while (1);
+  }
+
+  delay(1000);
+
 }
 
 const size_t buffLen = 6;     // length of the expected message chunks (number of characters between two commas) (16-bit int has 5 digits + sign)
@@ -80,6 +80,16 @@ bool commandReceived = false; // set to true when command separator is received 
 
 
 void loop() {
+  bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
+  
+  double magX = -1000000, magY = -1000000 , magZ = -1000000;
+  magX = magEvent.magnetic.x;
+  magY = magEvent.magnetic.y;
+  magZ = magEvent.magnetic.z;
+  
+  double yaw = atan2(magY, magX) * 180/3.14159+180.1;
+  str = String(yaw, 3);
+  Serial.println("<IMU|" + str + ">");
   if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it

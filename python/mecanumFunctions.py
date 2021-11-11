@@ -1,12 +1,13 @@
 import numpy as np
 import time
 #import cv2 as cv
+from numpy.core.numeric import ones
 import serial
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
-#ser = serial.Serial('COM6',9600) #Windows serial port
-ser = serial.Serial('/dev/ttyACM0',9600) #Unix serial port
-print(ser.name)
+#ser = serial.Serial('COM7',38400) #Windows serial port
+ser = serial.Serial('/dev/ttyACM0',38400) #Unix serial port
+#print(ser.name)
 # test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
 # test2 = "<MOT|255-255-255-255-0-0-0-0-1-1-1-1>"
 # try:
@@ -50,6 +51,7 @@ objective = []
 robotMotorSpeed = np.empty((1,4),float)
 robotVelocity = np.empty((3,1),int)
 defense = False
+objective
 
 # Robot Parameters
 # Full Scale
@@ -64,13 +66,13 @@ maxRPM = 150*0.104719755
 # lx = 62
 #maxRPM = 5#Actually in rad/s Dont want to update all vars
 
-## Plotting
-#mapScale = .1 #1px = 1cm
-#MAP = cv.imread("python\Map.PNG") #Read in picture of map
-#width = int(8*305*mapScale)
-#height = int(12*305*mapScale)
-#dimensions = (width,height)
-#MAP = cv.resize(MAP,dimensions, interpolation=cv.INTER_LINEAR)
+# Plotting
+# mapScale = .1 #1px = 1cm
+# MAP = cv.imread("python\Map.PNG") #Read in picture of map
+# width = int(8*305*mapScale)
+# height = int(12*305*mapScale)
+# dimensions = (width,height)
+# MAP = cv.resize(MAP,dimensions, interpolation=cv.INTER_LINEAR)
 
 def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
     global robotMotorSpeed
@@ -141,7 +143,7 @@ def updatePosRob(): #Updates the position based on the global robot velocity val
     #print(posRobx)
     posRobx = posRobx + robotVelocity[0]*dt
     posRoby = posRoby + robotVelocity[1]*dt
-    posRobt = posRobt + robotVelocity[2]*dt
+    #posRobt = posRobt + robotVelocity[2]*dt
     pass
 
 def getTime():
@@ -239,7 +241,7 @@ def push(data): #pushes data TO the arduino from the pi
         
         packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
     if connected:
-        print(packet.encode('utf-8'))
+        #print(packet.encode('utf-8'))
         ser.write(packet.encode('utf-8'))
         #print('Packet Sent')
 
@@ -320,7 +322,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
 #                        cmdIndex = 0
                         while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
                             cmdIndex = cmdIndex + 1
-                        posRobt= int(packet[index:index+cmdIndex])
+                        posRobt= float(packet[index:index+cmdIndex])*np.pi/180
                         cmdIndex = 0
                         commandReceived = False
                     elif (cmdBuffer == "OPP"): #Check if the received string is "OPP" #which indicates tracking the position of opponent
@@ -360,11 +362,11 @@ def isWhiteSpace(character):
     return False
 
 def main():
+    global objective
     test = 1
     ser.flush()
     try:
         while test != 5:
-            posOppy = posOppy - 1
             defense = posBally < 3660/2
             if defense: #Ball is on our half
                 if checkDefensive(): #We are in a protective position
@@ -389,9 +391,9 @@ def main():
                 else: #Robot is far from ball
                     push(motorSpeed((goal2Speed(objective,5))))
                     updatePosRob()
-            #updateMap()
-            #test = test + 1
-            #if cv.waitKey(20) & 0xFF==ord('d'):
+            # updateMap()
+            # #test = test + 1
+            # if cv.waitKey(20) & 0xFF==ord('d'):
             #    stop = "<STOP>"
             #    ser.write(stop.encode('utf-8'))
             #    break
@@ -400,9 +402,27 @@ def main():
         print("turds")
         stop = "<STOP>"
         ser.write(stop.encode('utf-8'))
-        #cv.destroyAllWindows()
+        # cv.destroyAllWindows()
 
 def rotationTest():
-    pull()
-    goal = [posRobx,posRoby,posRobt]
-    
+    global objective
+    try:
+        ser.flush()
+        while True:
+            pull()
+            objective = (posRobx,posRoby,posRobt)
+            push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
+            #updateMap()
+    except KeyboardInterrupt:
+        print("turds")
+        stop = "<STOP>"
+
+def pullTest():
+    try:
+        ser.flush()
+        while True:
+            pull()
+    except KeyboardInterrupt:
+        print("turds")
+
+rotationTest()
