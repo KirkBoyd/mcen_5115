@@ -29,7 +29,7 @@ int speedRatio = 0;
 boolean on = false;
 
 /* Set the delay between fresh samples */
-uint16_t BNO055_SAMPLERATE_DELAY_MS = 100;
+uint16_t BNO055_SAMPLERATE_DELAY_MS = 1000;
 
 // Check I2C device address and correct line below (by default address is 0x29 or 0x28)
 //                                   id, address
@@ -87,8 +87,8 @@ void loop() {
   magY = magEvent.magnetic.y;
   magZ = magEvent.magnetic.z;
   
-  double yaw = atan2(magY, magX) * 180/3.14159+180.1;
-  str = String(yaw, 3);
+  int yaw = atan2(magY, magX) * 180/3.14159+180;
+  str = String(yaw);
   Serial.println("<IMU|" + str + ">");
   if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
