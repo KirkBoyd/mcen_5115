@@ -5,7 +5,7 @@ from numpy.core.numeric import ones
 import serial
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
-ser = serial.Serial('COM6',38400) #Windows serial port
+ser = serial.Serial('COM6',2400) #Windows serial port
 #ser = serial.Serial('/dev/ttyACM0',38400) #Unix serial port
 #print(ser.name)
 # test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
@@ -223,6 +223,7 @@ def checkDefensive(): #Checks if the robot is close enough to the line from the 
     return d<50
 
 def push(data): #pushes data TO the arduino from the pi
+    print("Pushing: " + str(data))
     motorSpeedAbs = data[0]
     inA1 = data[1]
     inA2 = data[2]
@@ -239,11 +240,11 @@ def push(data): #pushes data TO the arduino from the pi
             outA1 = outA1 + "-"
             outA2 = outA2 + "-"
         
-        packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
+        packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">\n"
     if connected:
-        #print(packet.encode('utf-8'))
+        print(packet.encode('utf-8'))
         ser.write(packet.encode('utf-8'))
-        #print('Packet Sent')
+        print('Packet Sent')
 
 def pull(): #pulls (or receives) data from the arduino on the pi
     print("Pulling")
@@ -439,10 +440,13 @@ def rotationTest():
     try:
         ser.flush()
         while True:
+            print("Before Pull")
             pull()
             print("After Pull")
             objective = (posRobx,posRoby,posRobt)
+            print("Before Push")
             push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
+            print("After Push")
             #updateMap()
     except KeyboardInterrupt:
         print("turds")

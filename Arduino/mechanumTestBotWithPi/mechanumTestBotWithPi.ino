@@ -49,7 +49,7 @@ void setup() {
   pinMode(bIn1_b, OUTPUT);
   pinMode(bIn2_b, OUTPUT);
   pinMode(pwmB_b, OUTPUT);
-  Serial.begin(38400);
+  Serial.begin(2400);
 
   /* Initialise the sensor */
   if (!bno.begin())
