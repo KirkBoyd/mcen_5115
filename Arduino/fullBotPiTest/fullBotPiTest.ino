@@ -1,8 +1,25 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
 #define START_MARKER '<'
 #define END_MARKER '>'
 #define COMMAND_SEP '|'
 #define VALUE_SEP '-'
-String input;
+String input,str;
+sensors_event_t magEvent; //BNO055 magnetic data
+
+
+const int MPU6050_addr=0x68; //Other IMU
+int16_t AccX,AccY,AccZ,Temp,GyroX,GyroY,GyroZ;
+  
+/* Set the delay between fresh samples */
+uint16_t BNO055_SAMPLERATE_DELAY_MS = 1000;
+
+// Check I2C device address and correct line below (by default address is 0x29 or 0x28)
+//                                   id, address
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 
 #define aIn1_f 2//teensy pin 39
 #define aIn2_f 4//teensy pin 38
@@ -30,7 +47,15 @@ void setup() {
   pinMode(bIn1_b, OUTPUT);
   pinMode(bIn2_b, OUTPUT);
   pinMode(pwmB_b, OUTPUT);
-  Serial.begin(9600);
+  Serial.begin(4800);
+  
+  /* Initialise the sensor */
+  if (!bno.begin())
+  {
+    /* There was a problem detecting the BNO055 ... check your connections */
+    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    //while (1);
+  }
 }
 
 const size_t buffLen = 6;     // length of the expected message chunks (number of characters between two commas) (16-bit int has 5 digits + sign)
@@ -50,6 +75,17 @@ bool commandReceived = false; // set to true when command separator is received 
 
 
 void loop() {
+  bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
+  
+  double magX = -1000000, magY = -1000000 , magZ = -1000000;
+  magX = magEvent.magnetic.x;
+  magY = magEvent.magnetic.y;
+  magZ = magEvent.magnetic.z;
+  
+  int yaw = atan2(magY, magX) * 180/3.14159+180;
+  str = String(yaw);
+  //Serial.println("<IMU|" + str + ">");
+  Serial.println("<IMU|90>");
   if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it

@@ -3,9 +3,10 @@ import time
 #import cv2 as cv
 from numpy.core.numeric import ones
 import serial
+import signal
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
-ser = serial.Serial('COM6',2400) #Windows serial port
+ser = serial.Serial('COM6',4800) #Windows serial port
 #ser = serial.Serial('/dev/ttyACM0',38400) #Unix serial port
 #print(ser.name)
 # test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
@@ -245,6 +246,20 @@ def push(data): #pushes data TO the arduino from the pi
         print(packet.encode('utf-8'))
         ser.write(packet.encode('utf-8'))
         print('Packet Sent')
+class TimeoutError(Exception):
+    pass
+
+class timeout:
+    def __init__(self,seconds=1,error_message='Timeout'):
+        self .seconds = seconds
+        self.error_message = error_message
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
 
 def pull(): #pulls (or receives) data from the arduino on the pi
     print("Pulling")
@@ -445,7 +460,8 @@ def rotationTest():
             print("After Pull")
             objective = (posRobx,posRoby,posRobt)
             print("Before Push")
-            push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
+            with timeout(seconds=1):
+                push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
             print("After Push")
             #updateMap()
     except KeyboardInterrupt:

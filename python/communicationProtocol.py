@@ -10,7 +10,7 @@ posRobx = 700
 posRoby = 150
 posRobt = 0
 
-ser = serial.Serial('COM5',9600) #Windows serial port
+ser = serial.Serial('COM6',2400) #Windows serial port
 #ser = serial.Serial('\dev\ttyUSB*',9600) #Unix serial port
 
 #List of Commands or functions
