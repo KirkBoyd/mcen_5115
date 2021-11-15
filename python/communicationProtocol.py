@@ -1,6 +1,6 @@
-import numpy as np
-import serial
-import time
+import numpy as np # for calculations
+import serial # for serial communication
+import time # for delays and __anything else?__
 
 posBallx = 1500
 posBally = 2000
@@ -55,17 +55,24 @@ def pull(): #pulls (or receives) data from the arduino on the pi
     commandReceived = False    #set to true when command separator is received (or if command buffer is full)
 
     cmdLen = 3 #length of command to recieve
-    cmdBuffer = ""
+    cmdBuffer = "" #?? - KB
 
     index = 0
     cmdIndex = 0
-    if (ser.in_waiting > 0):
+    if (ser.in_waiting > 0): # if the serial library picks up a message waiting
         packet = ser.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
         print(packet) #print what was received from the serial port
         if (isWhiteSpace(packet)):
             return # Ignore whitespace
         while index < len(packet): #step through each byte of the packet
             serialByte = packet[index] #the byte we are looking at is the one currently at index
+
+            ## Can we just put an exit case here that if any character is the upside down question mark,
+            # ( or maybe even anything that isnt a number, cmdBuffer, separator, or marker)
+            # just exit and check for next packet?
+            # or we could do it like the isWhiteSpace() function you made below?
+            # -KB    
+
             # print(serialByte)
             if (isWhiteSpace(serialByte)): #ignore whitespace again if found
                 return
@@ -75,7 +82,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                 index = index + 1
                 continue
             if(receiving): #if looking for a packet
-                serialByte = packet[index]
+                serialByte = packet[index] # store current byte
                 if not commandReceived:
                     if (serialByte == COMMAND_SEP): #If the command separator is received
                         index = index + 1 #count forward one because there is not a command in this byte
@@ -90,22 +97,22 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                     index = index + 4
                     if (cmdBuffer == "ROB"): #Check if the received string is "ROB"
                         print("ROB") #this is for position of the robot
-                        while packet[index+cmdIndex] != VALUE_SEP:
-                            cmdIndex = cmdIndex + 1
-                        posRobx= int(packet[index:index+cmdIndex])
-                        index = index + cmdIndex + 1
-                        cmdIndex = 0
-                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
-                            cmdIndex = cmdIndex + 1
-                        posRoby= int(packet[index:index+cmdIndex])
-                        cmdIndex = 0
+                        while packet[index+cmdIndex] != VALUE_SEP: # as long as the next byte is not the command separator
+                            cmdIndex = cmdIndex + 1 # move to next byte
+                        posRobx= int(packet[index:index+cmdIndex]) # put all of the bytes up to command separator into x position array
+                        index = index + cmdIndex + 1 # move to next set of bytes
+                        cmdIndex = 0 # reset counter to check through each command
+                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER: # as long as a separator or end marker is not received
+                            cmdIndex = cmdIndex + 1 # move to next byte
+                        posRoby= int(packet[index:index+cmdIndex]) # store all of those bytes as y position
+                        cmdIndex = 0 # reset counter to check through each command
                         commandReceived = False
                     elif (cmdBuffer == "IMU"): #Check if the received string is "IMU"
                         while packet[index+cmdIndex] != VALUE_SEP:
                             cmdIndex = cmdIndex + 1
                         velRobx= int(packet[index:index+cmdIndex])
                         index = index + cmdIndex + 1
-                        cmdIndex = 0
+                        cmdIndex = 0 # reset counter to check through each command
                         while packet[index+cmdIndex] != VALUE_SEP:
                             cmdIndex = cmdIndex + 1
                         velRoby= int(packet[index:index+cmdIndex])
