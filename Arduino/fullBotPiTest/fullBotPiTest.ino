@@ -47,7 +47,7 @@ void setup() {
   pinMode(bIn1_b, OUTPUT);
   pinMode(bIn2_b, OUTPUT);
   pinMode(pwmB_b, OUTPUT);
-  Serial.begin(4800);
+  Serial.begin(1200);
   
   /* Initialise the sensor */
   if (!bno.begin())
@@ -84,8 +84,8 @@ void loop() {
   
   int yaw = atan2(magY, magX) * 180/3.14159+180;
   str = String(yaw);
-  //Serial.println("<IMU|" + str + ">");
-  Serial.println("<IMU|90>");
+  Serial.println("<IMU|" + str + ">");
+  //Serial.println("<IMU|90>");
   if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it
