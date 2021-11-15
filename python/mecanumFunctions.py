@@ -7,7 +7,7 @@ import signal
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
 #ser = serial.Serial('COM6',4800) #Windows serial port
-ser = serial.Serial('/dev/ttyACM0',4800) #Unix serial port
+ser = serial.Serial('/dev/ttyACM0',1200) #Unix serial port
 #print(ser.name)
 # test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
 # test2 = "<MOT|255-255-255-255-0-0-0-0-1-1-1-1>"
@@ -458,18 +458,22 @@ def rotationTest():
         while True:
             #print("Before Pull")
             try:
-                with timeout(seconds = .1):
+                with timeout(seconds = .5):
                     pull()
             except TimeoutError:
+                print("Resetting input buffer")
+                ser.reset_input_buffer()
                 print("Pull TImeout")
             #print("After Pull")
             objective = (posRobx,posRoby,posRobt)
             #print("Before Push")
             posTargety
             try:
-                with timeout(seconds=.1):
+                with timeout(seconds=.5):
                     push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
             except TimeoutError:
+                print("resetting output buffer")
+                ser.reset_output_buffer()
                 print("Push Timeout")
             #print("After Push")
             #updateMap()
