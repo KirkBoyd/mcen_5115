@@ -9,7 +9,7 @@
 #define VALUE_SEP '-'
 String input,str;
 sensors_event_t magEvent; //BNO055 magnetic data
-
+/* Hat
 #define aIn1_f 39//teensy pin 39
 #define aIn2_f 38//teensy pin 38
 #define pwmA_f 14//teensy pin 14 // speed for front left motor
@@ -22,6 +22,19 @@ sensors_event_t magEvent; //BNO055 magnetic data
 #define bIn1_b 17//teensy pin 17
 #define bIn2_b 22//teensy pin 22
 #define pwmB_b 33//teensy pin 33 //speed for back right motor
+*/
+#define aIn1_f 38//teensy pin 39
+#define aIn2_f 39//teensy pin 38
+#define pwmA_f 10//teensy pin 14 // speed for front left motor
+#define bIn1_f 40//teensy pin 40
+#define bIn2_f 41//teensy pin 41
+#define pwmB_f 11//teensy pin 37 //speed for front right motor
+#define aIn1_b 16//teensy pin 15
+#define aIn2_b 15//teensy pin 16
+#define pwmA_b 12//teensy pin 36 //speed for back left motor
+#define bIn1_b 17//teensy pin 17
+#define bIn2_b 22//teensy pin 22
+#define pwmB_b 13//teensy pin 33 //speed for back right motor
 int speedPin = 0;
 int ctrl_1 = 0;
 int ctrl_2 = 0;
@@ -49,7 +62,7 @@ void setup() {
   pinMode(bIn1_b, OUTPUT);
   pinMode(bIn2_b, OUTPUT);
   pinMode(pwmB_b, OUTPUT);
-  Serial.begin(2400);
+  Serial.begin(9600);
 
   /* Initialise the sensor */
   if (!bno.begin())
@@ -89,7 +102,7 @@ void loop() {
   
   int yaw = atan2(magY, magX) * 180/3.14159+180;
   str = String(yaw);
-  Serial.println("<IMU|" + str + ">");
+  //Serial.println("<IMU|" + str + ">");
   if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it
