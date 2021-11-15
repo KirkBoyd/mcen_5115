@@ -29,15 +29,15 @@ posTargety = 3660
 posProtectx = 2440/2 #Our goal
 posProtecty = 0 #Our Goal
 objective = []
-robotMotorSpeed = np.empty((1,4),float)
-robotVelocity = np.empty((3,1),int)
-defense = False
+robotMotorSpeed = np.empty((1,4),float) # array to hold speeds for each of four motors
+robotVelocity = np.empty((3,1),int) # array to hold velocities?
+defense = False # boolean for defense / offense mode
 
 ## Robot Parameters
 r = 97/2 # radius in mm
 ly = 100 # Distance from center of robot to center of wheel in y direction
 lx = 100 # Distance from center of robot to center of wheel in x direction
-maxRPM = 1000
+maxRPM = 1000 # Safety value to keep from over running motors
 
 ## Plotting
 mapScale = .1 #1px = 1cm
