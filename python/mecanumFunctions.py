@@ -6,8 +6,9 @@ import serial
 import signal
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
-#ser = serial.Serial('COM6',4800) #Windows serial port
-ser = serial.Serial('/dev/ttyACM0',4800) #Unix serial port
+#ser = serial.Serial('COM6',4800) #winndows serial port
+ser = serial.Serial('/dev/ttyACM0',1200,write_timeout=.5,timeout=.5) #Unix serial port
+#serData = serial.Serial('/dev/ttyACM1',1200,write_timeout=.5) #Receiving data
 #print(ser.name)
 # test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
 # test2 = "<MOT|255-255-255-255-0-0-0-0-1-1-1-1>"
@@ -241,11 +242,11 @@ def push(data): #pushes data TO the arduino from the pi
             outA1 = outA1 + "-"
             outA2 = outA2 + "-"
         
-        packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">\n"
+        packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
     if connected:
-        #print(packet.encode('utf-8'))
+        print(packet.encode('utf-8'))
         ser.write(packet.encode('utf-8'))
-        #print('Packet Sent')
+        print('Packet Sent')
 class TimeoutError(Exception):
     pass
 
@@ -287,7 +288,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
     index = 0
     cmdIndex = 0
     if (ser.in_waiting > 0): 
-        #print("Bits")
+        print("Bits")
         try:
             packet = ser.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
         except UnicodeDecodeError:
@@ -456,9 +457,9 @@ def rotationTest():
     try:
         ser.flush()
         while True:
-            #print("Before Pull")
+            print("Before Pull")
             try:
-                with timeout(seconds = .1):
+                with timeout(seconds = .5):
                     pull()
             except TimeoutError:
                 print("Pull TImeout")
@@ -467,10 +468,17 @@ def rotationTest():
             #print("Before Push")
             posTargety
             try:
-                with timeout(seconds=.1):
+                with timeout(seconds=1):
                     push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
             except TimeoutError:
                 print("Push Timeout")
+                serData.flush()
+                print("Push Flushed")
+            except:
+                print("Failure of push")
+                ser.flush()
+                print("Push Flushed")
+                
             #print("After Push")
             #updateMap()
     except KeyboardInterrupt:
@@ -485,5 +493,6 @@ def pullTest():
             print("After Pull")
     except KeyboardInterrupt:
         print("turds")
+        
 
-rotationTest()
+pullTest()

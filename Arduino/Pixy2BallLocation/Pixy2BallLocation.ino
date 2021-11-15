@@ -52,7 +52,7 @@ void loop()
       //Serial.print(": ");
       //pixy.ccc.blocks[i].print();
       
-      delay(500);
+      
 
       Serial.println((String)"<CAM|" + pixy.ccc.blocks[i].m_signature +(String)"-"+ pixy.ccc.blocks[i].m_x +(String)"-"+ pixy.ccc.blocks[i].m_y+(String)"-"+pixy.ccc.blocks[i].m_width+(String)"-"+pixy.ccc.blocks[i].m_height +(String)"-"+pixy.ccc.blocks[i].m_angle +(String)">");
 
