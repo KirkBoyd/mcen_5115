@@ -99,7 +99,7 @@ bool commandReceived = false; // set to true when command separator is received 
 
 void loop() {
   bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
-  
+  printLcd("Butts");
   double magX = -1000000, magY = -1000000 , magZ = -1000000;
   magX = magEvent.magnetic.x;
   magY = magEvent.magnetic.y;
@@ -111,6 +111,8 @@ void loop() {
   if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it
+        printLcd(String(serialByte));
+        delay(100);
         if (isWhiteSpace(serialByte))
             return; // Ignore whitespace
 

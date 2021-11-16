@@ -6,8 +6,8 @@ void moveMotor(int motorNum, bool inA1, bool inA2, float speedRatio){ // motorNu
     analogWrite(pwmA_f, speedRatio*speedVal);
   }
   else if(motorNum == 1){
-    digitalWrite(bIn1_f, inA1);
-    digitalWrite(bIn2_f, inA2);
+    digitalWrite(bIn1_f, !inA1);
+    digitalWrite(bIn2_f, !inA2);
     analogWrite(pwmB_f, speedRatio*speedVal);  
   }
   else if(motorNum == 2){
@@ -16,8 +16,8 @@ void moveMotor(int motorNum, bool inA1, bool inA2, float speedRatio){ // motorNu
     analogWrite(pwmA_b, speedRatio*speedVal);
   }
   else if(motorNum == 3){
-    digitalWrite(bIn1_b, inA1);
-    digitalWrite(bIn2_b, inA2);
+    digitalWrite(bIn1_b, !inA1);
+    digitalWrite(bIn2_b, !inA2);
     analogWrite(pwmB_b, speedRatio*speedVal);
   }
 }
