@@ -462,6 +462,7 @@ def rotationTest():
                 with timeout(seconds = .5):
                     pull()
             except TimeoutError:
+                ser.reset_input_data()
                 print("Pull TImeout")
             #print("After Pull")
             objective = (posRobx,posRoby,posRobt)
@@ -472,11 +473,11 @@ def rotationTest():
                     push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
             except TimeoutError:
                 print("Push Timeout")
-                serData.flush()
+                serData.reset_output_buffer()
                 print("Push Flushed")
             except:
                 print("Failure of push")
-                ser.flush()
+                ser.reset_output_buffer()
                 print("Push Flushed")
                 
             #print("After Push")
