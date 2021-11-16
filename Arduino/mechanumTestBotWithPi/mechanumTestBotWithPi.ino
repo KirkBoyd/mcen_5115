@@ -2,6 +2,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
+#include <LiquidCrystal_I2C.h>
 
 #define START_MARKER '<'
 #define END_MARKER '>'
@@ -9,7 +10,7 @@
 #define VALUE_SEP '-'
 String input,str;
 sensors_event_t magEvent; //BNO055 magnetic data
-
+/* Hat
 #define aIn1_f 39//teensy pin 39
 #define aIn2_f 38//teensy pin 38
 #define pwmA_f 14//teensy pin 14 // speed for front left motor
@@ -22,6 +23,19 @@ sensors_event_t magEvent; //BNO055 magnetic data
 #define bIn1_b 17//teensy pin 17
 #define bIn2_b 22//teensy pin 22
 #define pwmB_b 33//teensy pin 33 //speed for back right motor
+*/
+#define aIn1_f 38//teensy pin 39
+#define aIn2_f 39//teensy pin 38
+#define pwmA_f 10//teensy pin 14 // speed for front left motor
+#define bIn1_f 40//teensy pin 40
+#define bIn2_f 41//teensy pin 41
+#define pwmB_f 11//teensy pin 37 //speed for front right motor
+#define aIn1_b 16//teensy pin 15
+#define aIn2_b 15//teensy pin 16
+#define pwmA_b 12//teensy pin 36 //speed for back left motor
+#define bIn1_b 17//teensy pin 17
+#define bIn2_b 22//teensy pin 22
+#define pwmB_b 13//teensy pin 33 //speed for back right motor
 int speedPin = 0;
 int ctrl_1 = 0;
 int ctrl_2 = 0;
@@ -35,6 +49,7 @@ uint16_t BNO055_SAMPLERATE_DELAY_MS = 1000;
 //                                   id, address
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 
+LiquidCrystal_I2C lcd1(0x21,20,4);
 
 void setup() {
   pinMode(aIn1_f, OUTPUT);
@@ -49,8 +64,11 @@ void setup() {
   pinMode(bIn1_b, OUTPUT);
   pinMode(bIn2_b, OUTPUT);
   pinMode(pwmB_b, OUTPUT);
-  Serial.begin(2400);
+  Serial.begin(9600);
 
+  lcd1.init();
+  lcd1.backlight();
+  lcd1.setCursor(0,0);
   /* Initialise the sensor */
   if (!bno.begin())
   {
@@ -81,7 +99,7 @@ bool commandReceived = false; // set to true when command separator is received 
 
 void loop() {
   bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
-  
+  printLcd("Butts");
   double magX = -1000000, magY = -1000000 , magZ = -1000000;
   magX = magEvent.magnetic.x;
   magY = magEvent.magnetic.y;
@@ -89,10 +107,12 @@ void loop() {
   
   int yaw = atan2(magY, magX) * 180/3.14159+180;
   str = String(yaw);
-  Serial.println("<IMU|" + str + ">");
+  //Serial.println("<IMU|" + str + ">");
   if (Serial.available() > 0)
     {                                    // If there's at least one byte to read
         char serialByte = Serial.read(); // Read it
+        printLcd(String(serialByte));
+        delay(100);
         if (isWhiteSpace(serialByte))
             return; // Ignore whitespace
 

@@ -4,11 +4,15 @@ import time
 from numpy.core.numeric import ones
 import serial
 import signal
+
+from serial.serialutil import SerialTimeoutException
 ## Testing git
 ## Created by Thomas Gira Oct 13, 2021
+
 #ser = serial.Serial('COM6',4800) #winndows serial port
 ser = serial.Serial('/dev/ttyACM0',1200,write_timeout=.5,timeout=.5) #Unix serial port
 #serData = serial.Serial('/dev/ttyACM1',1200,write_timeout=.5) #Receiving data
+
 #print(ser.name)
 # test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
 # test2 = "<MOT|255-255-255-255-0-0-0-0-1-1-1-1>"
@@ -244,9 +248,11 @@ def push(data): #pushes data TO the arduino from the pi
         
         packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
     if connected:
-        print(packet.encode('utf-8'))
-        ser.write(packet.encode('utf-8'))
-        print('Packet Sent')
+        
+
+        ser.write(packet.encode('utf-8').rstrip())
+        #print('Packet Sent')
+
 class TimeoutError(Exception):
     pass
 
@@ -294,18 +300,18 @@ def pull(): #pulls (or receives) data from the arduino on the pi
         except UnicodeDecodeError:
             print("Invalid Packet")
             return
-        #print("Packet: " + packet) #print what was received from the serial port
-        #print("Len Packet: " + str(len(packet)))
+        print("Packet: " + packet) #print what was received from the serial port
+        print("Len Packet: " + str(len(packet)))
         if (isWhiteSpace(packet)):
             return # Ignore whitespace
         while index < len(packet): #step through each byte of the packet
-            #print("Index: " + str(index))
+            print("Index: " + str(index))
             serialByte = packet[index] #the byte we are looking at is the one currently at index
-            #print(serialByte)
+            print(serialByte)
             if (isWhiteSpace(serialByte)): #ignore whitespace again if found
                 return
             if serialByte == START_MARKER and not receiving: #if start marker is found
-                #print("Start marker received")
+                print("Start marker received")
                 receiving = True #record that a packet is beginning to be received
                 commandReceived = False #record that a packet was in fact received
                 index = index + 1
@@ -314,12 +320,12 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                 return
             if(receiving): #if looking for a packet
                 serialByte = packet[index]
-                #print("Serial Byte: " + serialByte)
+                print("Serial Byte: " + serialByte)
                 if not commandReceived:
                     if (serialByte == COMMAND_SEP): #If the command separator is received
                         index = index + 1 #count forward one because there is not a command in this byte
                         commandReceived = True
-                        #print("command recieved")
+                        print("command recieved")
                         continue
                     elif (serialByte == END_MARKER): #If end marker is reached
                         return
@@ -327,9 +333,9 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                         index = index + 1
                 else:
                     cmdBuffer = packet[index-4:index-1]
-                    #print("cmdBuffer: " + cmdBuffer)
+                    print("cmdBuffer: " + cmdBuffer)
                     if (cmdBuffer == "ROB"): #Check if the received string is "ROB"
-                        #print("ROB") #this is for position of the robot
+                        print("ROB") #this is for position of the robot
                         while packet[index+cmdIndex] != VALUE_SEP:
                             cmdIndex = cmdIndex + 1
                         posRobx= int(packet[index:index+cmdIndex])
@@ -356,17 +362,17 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                             #print("test")
                             try:
                                 float(packet[index+cmdIndex])
-                                #print("adding: " + packet[index+cmdIndex])
+                                print("adding: " + packet[index+cmdIndex])
                             except ValueError:
                                 print("Invalid packet contents")
                                 return
                             cmdIndex = cmdIndex + 1
-                        #print("Value: " + packet[index:index+cmdIndex])
+                        print("Value: " + packet[index:index+cmdIndex])
                         posRobt= float(packet[index:index+cmdIndex])*np.pi/180
                         index = index + cmdIndex + 1
                         cmdIndex = 0
                         commandReceived = False
-                        #print("End Function")
+                        print("End Function")
                         return
                     elif (cmdBuffer == "OPP"): #Check if the received string is "OPP" #which indicates tracking the position of opponent
                         while packet[index+cmdIndex] != VALUE_SEP:
@@ -406,6 +412,10 @@ def isWhiteSpace(character):
     if (character == '\r'):
         return True
     if (character == '\n'):
+        return True
+    if (character == '⸮'):
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
         return True
     return False
 
@@ -456,6 +466,8 @@ def rotationTest():
     global objective
     try:
         ser.flush()
+        ser.reset_output_buffer()
+        ser.reset_input_buffer()
         while True:
             print("Before Pull")
             try:
@@ -463,15 +475,14 @@ def rotationTest():
                     pull()
             except TimeoutError:
                 ser.reset_input_data()
-                print("Pull TImeout")
-            #print("After Pull")
-            objective = (posRobx,posRoby,posRobt)
-            #print("Before Push")
-            posTargety
-            try:
-                with timeout(seconds=1):
-                    push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
-            except TimeoutError:
+
+                print("")
+                #pull()
+            except SerialTimeoutException:
+                print("Resetting input buffer")
+                ser.reset_input_buffer()
+                ser.reset_output_buffer()
+
                 print("Push Timeout")
                 serData.reset_output_buffer()
                 print("Push Flushed")
@@ -496,4 +507,6 @@ def pullTest():
         print("turds")
         
 
+
 pullTest()
+
