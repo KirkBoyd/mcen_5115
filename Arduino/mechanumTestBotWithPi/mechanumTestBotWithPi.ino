@@ -2,6 +2,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
+#include <LiquidCrystal_I2C.h>
 
 #define START_MARKER '<'
 #define END_MARKER '>'
@@ -48,6 +49,7 @@ uint16_t BNO055_SAMPLERATE_DELAY_MS = 1000;
 //                                   id, address
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 
+LiquidCrystal_I2C lcd1(0x21,20,4);
 
 void setup() {
   pinMode(aIn1_f, OUTPUT);
@@ -64,6 +66,9 @@ void setup() {
   pinMode(pwmB_b, OUTPUT);
   Serial.begin(9600);
 
+  lcd1.init();
+  lcd1.backlight();
+  lcd1.setCursor(0,0);
   /* Initialise the sensor */
   if (!bno.begin())
   {
