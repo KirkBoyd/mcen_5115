@@ -468,7 +468,7 @@ def rotationTest():
             try:
                 print("")
                 #pull()
-            except TimeoutError:
+            except SerialTimeoutException:
                 print("Resetting input buffer")
                 ser.reset_input_buffer()
                 ser.reset_output_buffer()
