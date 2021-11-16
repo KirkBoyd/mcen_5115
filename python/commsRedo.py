@@ -15,4 +15,17 @@ if __name__ == '__main__':
         line = ser.readline().decode('utf-8').rstrip()
         print(line)
         time.sleep(1)
-    
+
+'''
+# Step1
+    Sending this:
+        ser.write(b"<MOT|255-255-255-255-1-1-1-1-0-0-0-0>\n")
+        line = ser.readline().decode('utf-8').rstrip()
+        print(line)
+
+    Yielded this successfully:
+        You sent me: <MOT|255-255-255-255-1-1-1-1-0-0-0-0>
+
+# Step2
+    Going to modify .ino file so that it separates out things from that string
+'''
