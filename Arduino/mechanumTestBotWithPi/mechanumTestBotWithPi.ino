@@ -66,6 +66,8 @@ void setup() {
   pinMode(pwmB_b, OUTPUT);
   Serial.begin(9600);
 
+  delay(1000);
+
   lcd1.init();
   lcd1.backlight();
   lcd1.setCursor(0,0);
@@ -76,8 +78,6 @@ void setup() {
     Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     while (1);
   }
-
-  delay(1000);
 
 }
 

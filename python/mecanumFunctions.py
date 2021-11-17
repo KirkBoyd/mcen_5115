@@ -10,25 +10,9 @@ from serial.serialutil import SerialTimeoutException
 ## Created by Thomas Gira Oct 13, 2021
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser = serial.Serial('/dev/ttyACM0',1200,write_timeout=.5,timeout=.5) #Unix serial port
-#serData = serial.Serial('/dev/ttyACM1',1200,write_timeout=.5) #Receiving data
+ser = serial.Serial('/dev/ttyACM0',115200,write_timeout=.5,timeout=.5) #Unix serial port
 
-#print(ser.name)
-# test1 = "<MOT|255-255-255-255-1-1-1-1-0-0-0-0>"
-# test2 = "<MOT|255-255-255-255-0-0-0-0-1-1-1-1>"
-# try:
-#     while True:
-#         ser.write(test1.encode('utf-8'))
-#         time.sleep(1)
-#         ser.write(test2.encode('utf-8'))
-#         time.sleep(1)
-# except KeyboardInterrupt:
-#     print("turds")
-#     stop = "<STOP>"
-#     ser.write(stop.encode('utf-8'))
-#     exit()
-
-time.sleep(5)
+time.sleep(1)
 connected = True
 ## World Frame
 #All units are in mm
@@ -229,29 +213,30 @@ def checkDefensive(): #Checks if the robot is close enough to the line from the 
     return d<50
 
 def push(data): #pushes data TO the arduino from the pi
-    #print("Pushing: " + str(data))
-    motorSpeedAbs = data[0]
-    inA1 = data[1]
-    inA2 = data[2]
-    #<MOT|motor-rpm-in1-in2>
-    motor = ""
-    outA1 = ""
-    outA2 = ""
-    for i in range(4):
-        motor = motor + str(motorSpeedAbs[i])
-        outA1 = outA1 + str(int(inA1[i]==True))
-        outA2 = outA2 + str(int(inA2[i]==True))
-        if i < 3:
-            motor = motor + "-"
-            outA1 = outA1 + "-"
-            outA2 = outA2 + "-"
-        
-        packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
-    if connected:
-        
+    if ser.in_waiting > 0:
+        #print("Pushing: " + str(data))
+        motorSpeedAbs = data[0]
+        inA1 = data[1]
+        inA2 = data[2]
+        #<MOT|motor-rpm-in1-in2>
+        motor = ""
+        outA1 = ""
+        outA2 = ""
+        for i in range(4):
+            motor = motor + str(motorSpeedAbs[i])
+            outA1 = outA1 + str(int(inA1[i]==True))
+            outA2 = outA2 + str(int(inA2[i]==True))
+            if i < 3:
+                motor = motor + "-"
+                outA1 = outA1 + "-"
+                outA2 = outA2 + "-"
+            
+            packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
+        if connected:
+            
 
-        ser.write(packet.encode('utf-8').rstrip())
-        #print('Packet Sent')
+            ser.write(packet.encode('utf-8'))
+            print('Packet Sent')
 
 class TimeoutError(Exception):
     pass
@@ -294,24 +279,24 @@ def pull(): #pulls (or receives) data from the arduino on the pi
     index = 0
     cmdIndex = 0
     if (ser.in_waiting > 0): 
-        print("Bits")
+        #print("Bits")
         try:
             packet = ser.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
         except UnicodeDecodeError:
             print("Invalid Packet")
             return
-        print("Packet: " + packet) #print what was received from the serial port
-        print("Len Packet: " + str(len(packet)))
+        #print("Packet: " + packet) #print what was received from the serial port
+        #print("Len Packet: " + str(len(packet)))
         if (isWhiteSpace(packet)):
             return # Ignore whitespace
         while index < len(packet): #step through each byte of the packet
-            print("Index: " + str(index))
+            #print("Index: " + str(index))
             serialByte = packet[index] #the byte we are looking at is the one currently at index
-            print(serialByte)
+            #print(serialByte)
             if (isWhiteSpace(serialByte)): #ignore whitespace again if found
                 return
             if serialByte == START_MARKER and not receiving: #if start marker is found
-                print("Start marker received")
+                #print("Start marker received")
                 receiving = True #record that a packet is beginning to be received
                 commandReceived = False #record that a packet was in fact received
                 index = index + 1
@@ -325,7 +310,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                     if (serialByte == COMMAND_SEP): #If the command separator is received
                         index = index + 1 #count forward one because there is not a command in this byte
                         commandReceived = True
-                        print("command recieved")
+                        #print("command recieved")
                         continue
                     elif (serialByte == END_MARKER): #If end marker is reached
                         return
@@ -333,7 +318,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                         index = index + 1
                 else:
                     cmdBuffer = packet[index-4:index-1]
-                    print("cmdBuffer: " + cmdBuffer)
+                    #print("cmdBuffer: " + cmdBuffer)
                     if (cmdBuffer == "ROB"): #Check if the received string is "ROB"
                         print("ROB") #this is for position of the robot
                         while packet[index+cmdIndex] != VALUE_SEP:
@@ -403,7 +388,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
             else:
                 index = index + 1
     else:
-        print("Not reading")
+        #print("Not reading")
         return
 
 def isWhiteSpace(character):
@@ -469,12 +454,12 @@ def rotationTest():
         ser.reset_output_buffer()
         ser.reset_input_buffer()
         while True:
-            print("Before Pull")
+            #print("Before Pull")
             try:
                 with timeout(seconds = .5):
                     pull()
             except TimeoutError:
-                ser.reset_input_data()
+                ser.reset_input_buffer()
 
                 print("")
                 #pull()
@@ -490,7 +475,7 @@ def rotationTest():
                 print("Failure of push")
                 ser.reset_output_buffer()
                 print("Push Flushed")
-                
+            push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))   
             #print("After Push")
             #updateMap()
     except KeyboardInterrupt:
@@ -508,5 +493,5 @@ def pullTest():
         
 
 
-pullTest()
+rotationTest()
 

@@ -1,25 +1,12 @@
-/* Got from roboticsbackend.com/raspberry-pi-arduino-serial-communication/
- 
- */
-// Retyped by Kirk Boyd
-// Last modified Nov 16, 2021
-int motVals[12]; //integer array to store motor values received over serial
-
-void setup(){
-  Serial.begin(115200);
+bool isWhiteSpace(char character){
+    if (character == ' ')
+        return true;
+    if (character == '\r')
+        return true;
+    if (character == '\n')
+        return true;
+    return false;
 }
-
-void loop(){
-  if(Serial.available() > 0){
-      
-    String data = Serial.readStringUntil('\n');
-    subdivideStr(data);
-//    Serial.print("You sent me: ");
-//    Serial.println(data);
-  }
-  
-}
-
 void subdivideStr(String packet){
   bool receiving = 0;
   bool cmdReceived = 0;
@@ -112,7 +99,18 @@ void subdivideStr(String packet){
           }
           else if(cmdBuffer == "STP"){
             Serial.println("STP Received");
-            //Stop motors
+            motVals[0] = 0;
+            motVals[1] = 0;
+            motVals[2] = 0;
+            motVals[3] = 0;
+            motVals[4] = 1;
+            motVals[5] = 1;
+            motVals[6] = 1;
+            motVals[7] = 1;
+            motVals[8] = 1;
+            motVals[9] = 1;
+            motVals[10] = 1;
+            motVals[11] = 1;
             break;
           }
           else{
@@ -122,11 +120,9 @@ void subdivideStr(String packet){
        } // Command Received
      } //End Receiving
      if(serByte == '>'){ //End marker has been received
-      Serial.println("Received end marker");
+      //Serial.println("Received end marker");
       break; 
      }
      
   } //End For Loop
-//  Serial.println("EOL");
-  Serial.println(motVals[0]);
-}
+} 
