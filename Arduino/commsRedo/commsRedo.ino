@@ -43,7 +43,7 @@ void subdivideStr(String packet){
   for(int i=0; i<len; i++){
     serByte = bytes[i];
 //    Serial.print("serByte = ");
-    Serial.println(serByte);
+//    Serial.println(serByte);
     if(isWhiteSpace(serByte)){ continue; }    
     if(serByte == '<' and !receiving){
       receiving = true;
@@ -52,7 +52,7 @@ void subdivideStr(String packet){
     }
     else if(serByte == '<' and receiving){
       Serial.println("Splish Splash the Data is Trash");
-      return;
+      break;
     }
     if(receiving){ //Started receiving command
         if(!cmdReceived){
@@ -64,7 +64,7 @@ void subdivideStr(String packet){
           }
           else if(serByte == '>'){ 
             Serial.println("Received end");
-            return; 
+            break; 
           } //End marker has been received
           else if(cmdIndex < 3){ //cmdBuffer has not been filled
             cmdBuffer = cmdBuffer + serByte; //Add the byte to the command index
@@ -74,7 +74,7 @@ void subdivideStr(String packet){
           }
           else{ //Command it too long
             Serial.println("Command too long");
-            return;
+            break;
           }
         }
         else{ //Command has been received
@@ -89,10 +89,10 @@ void subdivideStr(String packet){
 //              Serial.println(tempNumInd);
               motVals[motValsInd] = tempNum.toInt();
               
-              Serial.print("Motor: ");
-              Serial.print(motValsInd);
-              Serial.print(" is: ");
-              Serial.println(motVals[motValsInd]);
+//              Serial.print("Motor: ");
+//              Serial.print(motValsInd);
+//              Serial.print(" is: ");
+//              Serial.println(motVals[motValsInd]);
               tempNum = "";
               tempNumInd = 0;
               motValsInd++;
@@ -113,19 +113,20 @@ void subdivideStr(String packet){
           else if(cmdBuffer == "STP"){
             Serial.println("STP Received");
             //Stop motors
-            return;
+            break;
           }
           else{
             Serial.println("Invalid Command");
-            return;
+            break;
           }
        } // Command Received
      } //End Receiving
      if(serByte == '>'){ //End marker has been received
       Serial.println("Received end marker");
-      return; 
+      break; 
      }
      
   } //End For Loop
-//  Serial.println("for loop done");
+//  Serial.println("EOL");
+  Serial.println(motVals[0]);
 }
