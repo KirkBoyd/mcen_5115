@@ -36,18 +36,18 @@ void subdivideStr(String packet){
   
   
   packet.toCharArray(bytes, len);
-  Serial.println("Parsing String");
-  Serial.print("Packet Length: ");
-  Serial.println(len);
+//  Serial.println("Parsing String");
+//  Serial.print("Packet Length: ");
+//  Serial.println(len);
   char serByte; 
   for(int i=0; i<len; i++){
     serByte = bytes[i];
-    Serial.print("serByte = ");
+//    Serial.print("serByte = ");
     Serial.println(serByte);
     if(isWhiteSpace(serByte)){ continue; }    
     if(serByte == '<' and !receiving){
       receiving = true;
-      Serial.println("Received start marker");
+//      Serial.println("Received start marker");
       continue;
     }
     else if(serByte == '<' and receiving){
@@ -56,20 +56,20 @@ void subdivideStr(String packet){
     }
     if(receiving){ //Started receiving command
         if(!cmdReceived){
-          Serial.println("cmd not yet received");
+//          Serial.println("cmd not yet received");
           if(serByte == '|'){ //Command Sperator has been found
             cmdReceived = true; //Aknowledge new command
-            Serial.println("Command Received");
+//            Serial.println("Command Received");
             continue;  //Break from loop
           }
           else if(serByte == '>'){ 
-            Serial.println("Received end marker");
+            Serial.println("Received end");
             return; 
           } //End marker has been received
           else if(cmdIndex < 3){ //cmdBuffer has not been filled
             cmdBuffer = cmdBuffer + serByte; //Add the byte to the command index
-            Serial.print("cmdBuffer: ");
-            Serial.println(cmdBuffer);
+//            Serial.print("cmdBuffer: ");
+//            Serial.println(cmdBuffer);
             cmdIndex++; //Increment the command buffer
           }
           else{ //Command it too long
@@ -78,20 +78,20 @@ void subdivideStr(String packet){
           }
         }
         else{ //Command has been received
-          Serial.println("Building numbers from string");
+//          Serial.println("Building numbers from string");
           if(cmdBuffer == "MOT"){ //Motor command has been received
-            Serial.println("MOT Received");
+//            Serial.println("MOT Received");
             if(serByte == '-' or serByte == '>'){ //
-              Serial.println("Value Seperator received");
-              Serial.print("Storing tempNum: ");
-              Serial.println(tempNum);
-              Serial.print("at motor array index: ");
-              Serial.println(tempNumInd);
+//              Serial.println("Value Seperator received");
+//              Serial.print("Storing tempNum: ");
+//              Serial.println(tempNum);
+//              Serial.print("at motor array index: ");
+//              Serial.println(tempNumInd);
               motVals[motValsInd] = tempNum.toInt();
               
-              Serial.print("Now motor: ");
+              Serial.print("Motor: ");
               Serial.print(motValsInd);
-              Serial.print(" is set to: ");
+              Serial.print(" is: ");
               Serial.println(motVals[motValsInd]);
               tempNum = "";
               tempNumInd = 0;
@@ -99,13 +99,13 @@ void subdivideStr(String packet){
               
             }
             else{
-              Serial.println("Building up tempNum");
+//              Serial.println("Building up tempNum");
               tempNum = tempNum + serByte;
 //              String serByteStr = String(serByte);
 //              strcpy(tempNum,serByte);
 //              strcat(tempNum,serByteStr);
-              Serial.print("tempNum: ");
-              Serial.println(tempNum);
+//              Serial.print("tempNum: ");
+//              Serial.println(tempNum);
               tempNumInd++;
             }
             //now dig out numbers
@@ -127,4 +127,5 @@ void subdivideStr(String packet){
      }
      
   } //End For Loop
+//  Serial.println("for loop done");
 }

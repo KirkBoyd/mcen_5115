@@ -9,12 +9,17 @@ import time
 if __name__ == '__main__':
     ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
     ser.reset_input_buffer()
+    ser.reset_output_buffer()
     
     while True:
-        ser.write(b"<MOT|255-255-255-255-1-1-1-1-0-0-0-0>\n")
+        #if ser.in_waiting > 0:
         line = ser.readline().decode('utf-8').rstrip()
         print(line)
-        time.sleep(1)
+        if ser.out_waiting == 0:
+            #print("writing")
+            ser.write(b"<MOT|255-255-255-255-1-1-1-1-0-0-0-0>\n")
+            
+        #time.sleep(1)
 
 '''
 # Step1
