@@ -50,7 +50,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 
 void setup(){
   /* Initialise the sensor */
-  Serial.begin(115200);
+  Serial.begin(38400);
   delay(1000);
   if (!bno.begin())
   {
@@ -62,12 +62,7 @@ void setup(){
 }
 
 void loop(){
-//  bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
-//  magX = magEvent.magnetic.x;
-//  magY = magEvent.magnetic.y;
-  
-//  int yaw = atan2(magY, magX) * 180/3.14159+180;
-//  IMUstr = String(yaw);
+
   
 
   
@@ -78,10 +73,16 @@ void loop(){
       moveMotor(i,motVals[i],motVals[i+4],motVals[i+8]);
     }
   }
-//  Serial.println(IMUstr);
-//  if(Serial.availableForWrite() == 0){
+    bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
+  magX = magEvent.magnetic.x;
+  magY = magEvent.magnetic.y;
+  int yaw = atan2(magY, magX) * 180/3.14159+180;
+  IMUstr = String(yaw);
+
+  Serial.println(IMUstr);
+  if(Serial.availableForWrite() == 0){
 //      Serial.println(IMUstr);
-//      //Serial.println("<IMU|" + IMUstr + ">");
-//  }
+      Serial.println("<IMU|" + IMUstr + ">");
+  }
   
 }
