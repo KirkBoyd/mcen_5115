@@ -10,7 +10,7 @@ from serial.serialutil import SerialTimeoutException
 ## Created by Thomas Gira Oct 13, 2021
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser = serial.Serial('/dev/ttyACM0',115200,write_timeout=.5,timeout=.5) #Unix serial port
+ser = serial.Serial('/dev/ttyACM0',38400,write_timeout=.5,timeout=.5) #Unix serial port
 
 time.sleep(1)
 connected = True
@@ -236,7 +236,7 @@ def push(data): #pushes data TO the arduino from the pi
             
 
             ser.write(packet.encode('utf-8'))
-            print('Packet Sent')
+            #print('Packet Sent')
 
 class TimeoutError(Exception):
     pass
@@ -305,7 +305,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                 return
             if(receiving): #if looking for a packet
                 serialByte = packet[index]
-                print("Serial Byte: " + serialByte)
+                #print("Serial Byte: " + serialByte)
                 if not commandReceived:
                     if (serialByte == COMMAND_SEP): #If the command separator is received
                         index = index + 1 #count forward one because there is not a command in this byte
@@ -320,7 +320,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                     cmdBuffer = packet[index-4:index-1]
                     #print("cmdBuffer: " + cmdBuffer)
                     if (cmdBuffer == "ROB"): #Check if the received string is "ROB"
-                        print("ROB") #this is for position of the robot
+                        #print("ROB") #this is for position of the robot
                         while packet[index+cmdIndex] != VALUE_SEP:
                             cmdIndex = cmdIndex + 1
                         posRobx= int(packet[index:index+cmdIndex])
@@ -347,17 +347,17 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                             #print("test")
                             try:
                                 float(packet[index+cmdIndex])
-                                print("adding: " + packet[index+cmdIndex])
+                                #print("adding: " + packet[index+cmdIndex])
                             except ValueError:
                                 print("Invalid packet contents")
                                 return
                             cmdIndex = cmdIndex + 1
-                        print("Value: " + packet[index:index+cmdIndex])
+                        #print("Value: " + packet[index:index+cmdIndex])
                         posRobt= float(packet[index:index+cmdIndex])*np.pi/180
                         index = index + cmdIndex + 1
                         cmdIndex = 0
                         commandReceived = False
-                        print("End Function")
+                        #print("End Function")
                         return
                     elif (cmdBuffer == "OPP"): #Check if the received string is "OPP" #which indicates tracking the position of opponent
                         while packet[index+cmdIndex] != VALUE_SEP:
@@ -454,33 +454,21 @@ def rotationTest():
         ser.reset_output_buffer()
         ser.reset_input_buffer()
         while True:
-            #print("Before Pull")
             try:
-                with timeout(seconds = .5):
-                    pull()
-            except TimeoutError:
-                ser.reset_input_buffer()
-
-                print("")
-                #pull()
+                pull()
             except SerialTimeoutException:
                 print("Resetting input buffer")
                 ser.reset_input_buffer()
                 ser.reset_output_buffer()
-
-                print("Push Timeout")
-                serData.reset_output_buffer()
-                print("Push Flushed")
-            except:
+            try:
+                push(motorSpeed((goal2Speed((posRobx,posRoby,0),10)))) 
+            except SerialTimeoutException:
                 print("Failure of push")
                 ser.reset_output_buffer()
                 print("Push Flushed")
-            push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))   
-            #print("After Push")
-            #updateMap()
     except KeyboardInterrupt:
         print("turds")
-        stop = "<STOP>"
+        ser.write(b"<STP|>")
 
 def pullTest():
     try:

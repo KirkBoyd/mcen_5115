@@ -11,6 +11,7 @@
 
 int motVals[12] = {0}; //integer array to store motor values received over serial
 String IMUstr = "<IMU|0>"; //String to send IMU data
+String sendPacket; //packet to send to pi
 double magX = -1000000, magY = -1000000;
 sensors_event_t magEvent; //BNO055 magnetic data
 /* Set the delay between fresh samples */
@@ -79,10 +80,13 @@ void loop(){
   int yaw = atan2(magY, magX) * 180/3.14159+180;
   IMUstr = String(yaw);
 
-  Serial.println(IMUstr);
-  if(Serial.availableForWrite() == 0){
-//      Serial.println(IMUstr);
-      Serial.println("<IMU|" + IMUstr + ">");
-  }
+//  Serial.println(IMUstr);
+      sendPacket = "<IMU|" + IMUstr + ">";
+      Serial.println(sendPacket);
+//  if(Serial.availableForWrite() == 0){
+////      Serial.println(IMUstr);
+//      sendPacket = "<IMU|" + IMUstr + ">";
+//      Serial.println(sendPacket);
+//  }
   
 }
