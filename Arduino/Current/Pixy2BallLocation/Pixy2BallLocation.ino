@@ -28,7 +28,7 @@ Pixy2 pixy;
 
 void setup()
 {
-  Serial.begin(19200);
+  Serial.begin(38400);
   Serial.print("Starting...\n");
   
   pixy.init();
