@@ -6,8 +6,8 @@ import serial
 import signal
 
 from serial.serialutil import SerialTimeoutException
-## Testing git
 ## Created by Thomas Gira Oct 13, 2021
+# Last edited by Kirk Boyd Nov 26, 21
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
 ser = serial.Serial('/dev/ttyACM0',38400,write_timeout=.5,timeout=.5) #Unix serial port
@@ -332,7 +332,7 @@ def pull(): #pulls (or receives) data from the arduino on the pi
                         cmdIndex = 0
                         commandReceived = False
                     elif (cmdBuffer == "IMU"): #Check if the received string is "IMU"
-                        #print("IMU Signal Received")
+                        # print("IMU Signal Received")
                         # while packet[index+cmdIndex] != VALUE_SEP:
                         #     cmdIndex = cmdIndex + 1
                         # velRoby= int(packet[index:index+cmdIndex])
@@ -390,8 +390,10 @@ def pull(): #pulls (or receives) data from the arduino on the pi
     else:
         #print("Not reading")
         return
+## end def pull()
+    
 
-def isWhiteSpace(character):
+def isWhiteSpace(character): #checks if input value from serial is a blank / whitespace character
     if (character == ' '):
         return True
     if (character == '\r'):
@@ -403,6 +405,8 @@ def isWhiteSpace(character):
         ser.reset_output_buffer()
         return True
     return False
+##end def isWhiteSpace
+
 
 def main():
     global objective
@@ -446,8 +450,10 @@ def main():
         stop = "<STOP>"
         ser.write(stop.encode('utf-8'))
         # cv.destroyAllWindows()
+## end def main()
 
-def rotationTest():
+
+def rotationTest(): # test function to run the pull() function and make sure it is working with serial port
     global objective
     try:
         ser.flush()
@@ -468,7 +474,9 @@ def rotationTest():
                 print("Push Flushed")
     except KeyboardInterrupt:
         print("turds")
-        ser.write(b"<STP|>")
+        ser.write(b"<STP|>")        
+## end def rotationTest()        
+
 
 def pullTest():
     try:

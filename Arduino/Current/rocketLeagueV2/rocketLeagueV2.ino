@@ -53,8 +53,7 @@ void setup(){
   /* Initialise the sensor */
   Serial.begin(38400);
   delay(1000);
-  if (!bno.begin())
-  {
+  if (!bno.begin()) {
     /* There was a problem detecting the BNO055 ... check your connections */
     Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     while (1);
@@ -62,11 +61,7 @@ void setup(){
   //bno.onReceive(ReceiveEvent);
 }
 
-void loop(){
-
-  
-
-  
+void loop(){ 
   if(Serial.available() > 0){
     String data = Serial.readStringUntil('\n');
     subdivideStr(data);
@@ -84,7 +79,7 @@ void loop(){
       sendPacket = "<IMU|" + IMUstr + ">";
       Serial.println(sendPacket);
 //  if(Serial.availableForWrite() == 0){
-////      Serial.println(IMUstr);
+////      Serial.printl/n(IMUstr);
 //      sendPacket = "<IMU|" + IMUstr + ">";
 //      Serial.println(sendPacket);
 //  }
