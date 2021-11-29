@@ -73,7 +73,7 @@ int rxcoor, rycoor, bxcoor, bycoor,yxcoor, yycoor;
 void setup()
 {
   randomSeed(analogRead(0));
-  Serial.begin(9600);
+  Serial.begin(38400);
   Serial.print("Starting...\n");
   Serial.print("Node ");
   Serial.print(MYNODEID,DEC);
