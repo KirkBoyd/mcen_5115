@@ -123,7 +123,7 @@ void loop()
       lcd.setCursor(0,0);
       if (i%20==0) lcd.print("->"); // Activity characters. Shows in top right.
       else if (i%10==0) lcd.print("> "); // Activity characters. Shows in top right.
-      delay(180);
+//      m,,,,,,,,,,,delay(180);
       for (j=0; j<PACKSIZE; j++) data[j]=0; //Erase the packet to make sure no garbage at end
       }
 }

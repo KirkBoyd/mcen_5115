@@ -73,7 +73,7 @@ int rxcoor, rycoor, bxcoor, bycoor,yxcoor, yycoor;
 void setup()
 {
   randomSeed(analogRead(0));
-  Serial.begin(9600);
+  Serial.begin(38400);
   Serial.print("Starting...\n");
   Serial.print("Node ");
   Serial.print(MYNODEID,DEC);
@@ -128,7 +128,7 @@ void loop()
   
 
 void sendPacket(char packet[], int plength) {
-//    Serial.println(packet); // Send to serial monitor
+    Serial.println(packet); // Send to serial monitor
     Serial.print("sending to node ");
     Serial.print(TONODEID, DEC);
     Serial.print(", message [");
