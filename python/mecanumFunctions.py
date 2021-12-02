@@ -50,8 +50,8 @@ robotMotorSpeed = np.empty((1,4),float)
 robotVelocity = np.empty((3,1),int)
 defense = False
 objective
-angleOffset = -0.4886921905584123; #Correct for gps angle
-
+imuBias = 0#Correct for gps angle
+imuBiasReceived = False
 ## World Calibration
 # North is towardsglass
 # East is towards Lockers
@@ -126,16 +126,16 @@ def robot2World(cords): #Takes in robot coordinates (rx, ry, rt) and returns wor
 
 def goal2Speed(goal,bias,delta=np.pi/6): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
     robotGoalCords = world2Robot(goal)
-    vx = robotGoalCords[0]
-    vy = -robotGoalCords[1]
+    dx = robotGoalCords[0]
+    dy = -robotGoalCords[1]
     dt = goal[2] - posRobt
     if abs(dt) > np.pi:
         dt = -dt
     if abs(dt) < delta:
         dt = 0
-    vt = dt*bias
+    dt = dt*bias
     
-    return [vx[0],vy[0],vt]
+    return [dx[0],dy[0],dt]
 
 def updateVelocity(): #Update the global velocity of the robot for positioning data
     global robotVelocity
@@ -306,6 +306,8 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
     global posOppy
     global posBallx
     global posBally
+    global imuBias
+    global imuBiasReceived
 
 
     START_MARKER = '<'  #marks the beginning of a data packet
@@ -379,7 +381,11 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if index+cmdIndex >= lenPacket: return
                     #print("Value: " + packet[index:index+cmdIndex])
                     try:
-                        posRobt= (float(packet[index:index+cmdIndex]))*np.pi/180
+                        if not imuBiasReceived:
+                            imuBias = (float(packet[index:index+cmdIndex])*2)*(np.pi/180)
+                            imuBiasReceived = True
+                        #print(packet[index:index+cmdIndex])    
+                        posRobt= (float(packet[index:index+cmdIndex])*2)*(np.pi/180) - imuBias
                     except ValueError:
                         return
                     index = index + cmdIndex + 1
@@ -597,16 +603,23 @@ def coordTest(): # test function to run the pull() function and make sure it is 
                 ser1.reset_input_buffer()
                 ser1.reset_output_buffer()
             try:
-                push(motorSpeed((goal2Speed((183,252),1))))
+                push(motorSpeed((goal2Speed((183,252,0),1))))
                 printInfo()
-                print("push")
             except SerialTimeoutException:
                 print("Failure of push")
                 ser0.reset_output_buffer()
                 print("Push Flushed")
     except KeyboardInterrupt:
         print("turds")
-        ser0.write(b"<STP|>") 
+        ser0.write(b"<STP|>")
+        
+def infoTest():
+    try:
+        while True:
+            pull()
+            printInfo()
+    except KeyboardInterrupt:
+        print("turds")
 
 def pullTest():
     try:
@@ -618,4 +631,4 @@ def pullTest():
         
 
 
-main()
+coordTest()

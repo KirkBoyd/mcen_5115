@@ -13,7 +13,7 @@ int motVals[12] = {0}; //integer array to store motor values received over seria
 String IMUstr = "<IMU|0>"; //String to send IMU data
 String sendPacket; //packet to send to pi
 double magX = -1000000, magY = -1000000;
-sensors_event_t magEvent; //BNO055 magnetic data
+sensors_event_t magEvent, orientationData; //BNO055 magnetic data
 /* Set the delay between fresh samples */
 uint16_t BNO055_SAMPLERATE_DELAY_MS = 1000;
 
@@ -70,10 +70,12 @@ void loop(){
     }
   }
     bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
+    bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
   magX = magEvent.magnetic.x;
   magY = magEvent.magnetic.y;
+  int theta = orientationData.orientation.x;
   int yaw = atan2(magY, magX) * 180/3.14159+180;
-  IMUstr = String(yaw);
+  IMUstr = String(theta/2); //Divide by two to prevent bit failure 12/2
 
 //  Serial.println(IMUstr);
       sendPacket = "<IMU|" + IMUstr + ">";
