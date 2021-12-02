@@ -10,8 +10,8 @@ from serial.serialutil import SerialTimeoutException
 # Last edited by Kirk Boyd Nov 26, 21
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser0 = serial.Serial('/dev/ttyACM1',38400,write_timeout=.5,timeout=.5) #IMU and Motors
-ser1 = serial.Serial('/dev/ttyACM0',38400,write_timeout=.5,timeout=.5) #Radio
+ser0 = serial.Serial('/dev/ttyACM0',38400,write_timeout=.5,timeout=.5) #IMU and Motors
+ser1 = serial.Serial('/dev/ttyACM1',38400,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
 ser0.flush()
@@ -52,7 +52,7 @@ defense = False
 objective
 angleOffset = -0.4886921905584123; #Correct for gps angle
 def printInfo():
-    print("posBallX: "+ str(posBallx) +" posBallY: "+ str(posBally) +" posOPPX: "+ str(posOppx) +" posOppY: "+ str(posOppy) +" posRobX: "+ str(posRobx) +" posRoby: "+ str(posRoby) + " posRobt: " + str(posRobt))
+    #print("posBallX: "+ str(posBallx) +" posBallY: "+ str(posBally) +" posOPPX: "+ str(posOppx) +" posOppY: "+ str(posOppy) +" posRobX: "+ str(posRobx) +" posRoby: "+ str(posRoby) + " posRobt: " + str(posRobt))
     print("Vx: "+ str(robotVelocity[0]) + " Vy: " + str(robotVelocity[1])+ " Vt: " + str(robotVelocity[2]))
     #print("Objective: " + str(objective))
     
@@ -112,11 +112,16 @@ def robot2World(cords): #Takes in robot coordinates (rx, ry, rt) and returns wor
 
     return [x,y]
 
-def goal2Speed(goal,bias): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
+def goal2Speed(goal,bias,delta=np.pi/6): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
     robotGoalCords = world2Robot(goal)
     vx = robotGoalCords[0]
     vy = -robotGoalCords[1]
-    vt = (goal[2] - posRobt)*bias
+    dt = goal[2] - posRobt
+    if abs(dt) > np.pi:
+        dt = -dt
+    if abs(dt) < delta:
+        dt = 0
+    vt = dt*bias
     
     return [vx[0],vy[0],vt]
 
@@ -247,7 +252,7 @@ def push(data): #pushes data TO the arduino from the pi
         if connected:
             try:
                 ser0.write(packet.encode('utf-8'))
-                #print('Sent:' + packet)
+                print('Sent:' + packet)
             except serial.serialutil.SerialTimeoutException:
                 ser0.reset_output_buffer
                 ser1.reset_output_buffer
@@ -362,7 +367,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if index+cmdIndex >= lenPacket: return
                     #print("Value: " + packet[index:index+cmdIndex])
                     try:
-                        posRobt= float(packet[index:index+cmdIndex])*np.pi/180 + angleOffset
+                        posRobt= (float(packet[index:index+cmdIndex])-32)*np.pi/180
                     except ValueError:
                         return
                     index = index + cmdIndex + 1
@@ -400,33 +405,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                             return
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
-                        if index+cmdIndex > lenPacket: return
-                    posBallx= int(packet[index:index+cmdIndex])
-                    index = index + cmdIndex + 1
-                    cmdIndex = 0
-                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
-                        try:
-                            float(packet[index+cmdIndex])
-                            #print("adding: " + packet[index+cmdIndex])
-                        except ValueError:
-                            print("Invalid packet contents")
-                            return
-                        if packet[index+cmdIndex] == START_MARKER: return
-                        cmdIndex = cmdIndex + 1
-                        if index+cmdIndex > lenPacket: return
-                    posBally= int(packet[index:index+cmdIndex])
-                    index = index + cmdIndex + 1
-                    cmdIndex = 0
-                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
-                        try:
-                            float(packet[index+cmdIndex])
-                            #print("adding: " + packet[index+cmdIndex])
-                        except ValueError:
-                            print("Invalid packet contents")
-                            return
-                        if packet[index+cmdIndex] == START_MARKER: return
-                        cmdIndex = cmdIndex + 1
-                        if index+cmdIndex > lenPacket: return
+                        if index+cmdIndex >= lenPacket: return
                     posOppx= int(packet[index:index+cmdIndex])
                     index = index + cmdIndex + 1
                     cmdIndex = 0
@@ -439,8 +418,34 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                             return
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
-                        if index+cmdIndex > lenPacket: return
+                        if index+cmdIndex >= lenPacket: return
                     posOppy= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
+                        try:
+                            float(packet[index+cmdIndex])
+                            #print("adding: " + packet[index+cmdIndex])
+                        except ValueError:
+                            print("Invalid packet contents")
+                            return
+                        if packet[index+cmdIndex] == START_MARKER: return
+                        cmdIndex = cmdIndex + 1
+                        if index+cmdIndex >= lenPacket: return
+                    posBallx= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
+                        try:
+                            float(packet[index+cmdIndex])
+                            #print("adding: " + packet[index+cmdIndex])
+                        except ValueError:
+                            print("Invalid packet contents")
+                            return
+                        if packet[index+cmdIndex] == START_MARKER: return
+                        cmdIndex = cmdIndex + 1
+                        if index+cmdIndex >= lenPacket: return
+                    posBally= int(packet[index:index+cmdIndex])
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     commandReceived = False
@@ -520,7 +525,7 @@ def main():
                     #updatePosRob()
                     #updateBall()
                 else: #Robot is far from ball
-                    push(motorSpeed((goal2Speed(objective,5))))
+                    push(motorSpeed((goal2Speed(objective,.05))))
                     #updatePosRob()
             # updateMap()
             # #test = test + 1
