@@ -10,8 +10,8 @@ from serial.serialutil import SerialTimeoutException
 # Last edited by Kirk Boyd Nov 26, 21
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser0 = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #IMU and Motors
-ser1 = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
+ser0 = serial.Serial('/dev/ttyACM3',9600,write_timeout=.5,timeout=.5) #IMU and Motors
+ser1 = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
 ser0.flush()
@@ -65,7 +65,7 @@ ymax = 495
 
 def printInfo():
     print("posBallX: "+ str(posBallx) +" posBallY: "+ str(posBally) +" posOPPX: "+ str(posOppx) +" posOppY: "+ str(posOppy) +" posRobX: "+ str(posRobx) +" posRoby: "+ str(posRoby) + " posRobt: " + str(posRobt))
-    #print("Vx: "+ str(robotVelocity[0]) + " Vy: " + str(robotVelocity[1])+ " Vt: " + str(robotVelocity[2]))
+    print("Vx: "+ str(robotVelocity[0]) + " Vy: " + str(robotVelocity[1])+ " Vt: " + str(robotVelocity[2]))
     #print("Objective: " + str(objective))
     
 # Robot Parameters
@@ -107,6 +107,7 @@ def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
     motorSpeedAbs = abs(motorSpeedOut) #Make motor speed a magnitude
     return motorSpeedAbs,inA1,inA2
 
+
 def world2Robot(cords): #Function to convert world coordinates to robot coordinates
     dX = cords[0] - posRobx
     dY = cords[1] -posRoby
@@ -125,6 +126,9 @@ def robot2World(cords): #Takes in robot coordinates (rx, ry, rt) and returns wor
     return [x,y]
 
 def goal2Speed(goal,bias,delta=np.pi/6): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
+    global robotVelovity
+    
+    
     robotGoalCords = world2Robot(goal)
     dx = robotGoalCords[0]
     dy = -robotGoalCords[1]
@@ -134,7 +138,7 @@ def goal2Speed(goal,bias,delta=np.pi/6): #Function to get robot velocity based o
     if abs(dt) < delta:
         dt = 0
     dt = dt*bias
-    
+    robotVelocity = [dx[0],dy[0],dt]
     return [dx[0],dy[0],dt]
 
 def updateVelocity(): #Update the global velocity of the robot for positioning data
@@ -603,7 +607,7 @@ def coordTest(): # test function to run the pull() function and make sure it is 
                 ser1.reset_input_buffer()
                 ser1.reset_output_buffer()
             try:
-                push(motorSpeed((goal2Speed((183,252,0),1))))
+                push(motorSpeed((goal2Speed((183,252,0),.001))))
                 printInfo()
             except SerialTimeoutException:
                 print("Failure of push")
@@ -628,7 +632,9 @@ def pullTest():
             print("After Pull")
     except KeyboardInterrupt:
         print("turds")
-        
-
+def test():
+    speed = (1,0,0)
+    vals = motorSpeed(speed)
+    print(vals)
 
 coordTest()
