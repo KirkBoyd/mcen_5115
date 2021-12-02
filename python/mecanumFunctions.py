@@ -10,9 +10,17 @@ from serial.serialutil import SerialTimeoutException
 # Last edited by Kirk Boyd Nov 26, 21
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser = serial.Serial('/dev/ttyACM0',38400,write_timeout=.5,timeout=.5) #Unix serial port
-
+ser0 = serial.Serial('/dev/ttyACM3',38400,write_timeout=.5,timeout=.5) #IMU and Motors
+ser1 = serial.Serial('/dev/ttyACM0',38400,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
+
+ser0.flush()
+ser0.reset_output_buffer()
+ser0.reset_input_buffer()
+
+ser1.flush()
+ser1.reset_output_buffer()
+ser1.reset_input_buffer()
 connected = True
 ## World Frame
 #All units are in mm
@@ -42,7 +50,13 @@ robotMotorSpeed = np.empty((1,4),float)
 robotVelocity = np.empty((3,1),int)
 defense = False
 objective
-
+def printFnfo():
+    print("posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +)
+    print(posBally)
+    print(posOppx)
+    print(posOppy)
+    print(posRobx)
+    print(posRoby)
 # Robot Parameters
 # Full Scale
 r = 97/2 # radius in mm
@@ -213,7 +227,7 @@ def checkDefensive(): #Checks if the robot is close enough to the line from the 
     return d<50
 
 def push(data): #pushes data TO the arduino from the pi
-    if ser.in_waiting > 0:
+    if ser0.out_waiting == 0:
         #print("Pushing: " + str(data))
         motorSpeedAbs = data[0]
         inA1 = data[1]
@@ -233,10 +247,8 @@ def push(data): #pushes data TO the arduino from the pi
             
             packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
         if connected:
-            
-
-            ser.write(packet.encode('utf-8'))
-            #print('Packet Sent')
+            ser0.write(packet.encode('utf-8'))
+            print('Packet Sent')
 
 class TimeoutError(Exception):
     pass
@@ -253,8 +265,33 @@ class timeout:
         signal.setitimer(signal.ITIMER_REAL,self.seconds)
     def __exit__(self, type, value, traceback):
         signal.alarm(0)
-
-def pull(): #pulls (or receives) data from the arduino on the pi
+def pull():
+    if (ser0.in_waiting > 0): 
+        #print("Bits")
+        try:
+            packet = ser0.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
+            parse(packet)
+        except UnicodeDecodeError:
+            print("Invalid Packet")
+            return
+        #print("Packet: " + packet) #print what was received from the serial port
+        #print("Len Packet: " + str(len(packet)))
+        if (isWhiteSpace(packet)):
+            return # Ignore whitespace
+    
+    if (ser1.in_waiting > 0): 
+        #print("Bits")
+        try:
+            packet = ser1.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
+            parse(packet)
+        except UnicodeDecodeError:
+            print("Invalid Packet")
+            return
+        #print("Packet: " + packet) #print what was received from the serial port
+        #print("Len Packet: " + str(len(packet)))
+        if (isWhiteSpace(packet)):
+            return # Ignore whitespace
+def parse(packet): #pulls (or receives) data from the arduino on the pi
     #print("Pulling")
     global posRobx
     global posRoby
@@ -278,119 +315,162 @@ def pull(): #pulls (or receives) data from the arduino on the pi
 
     index = 0
     cmdIndex = 0
-    if (ser.in_waiting > 0): 
-        #print("Bits")
-        try:
-            packet = ser.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
-        except UnicodeDecodeError:
-            print("Invalid Packet")
+    #print(packet)
+    while index < len(packet): #step through each byte of the packet
+        #print("Index: " + str(index))
+        serialByte = packet[index] #the byte we are looking at is the one currently at index
+        #print(serialByte)
+        if (isWhiteSpace(serialByte)): #ignore whitespace again if found
             return
-        #print("Packet: " + packet) #print what was received from the serial port
-        #print("Len Packet: " + str(len(packet)))
-        if (isWhiteSpace(packet)):
-            return # Ignore whitespace
-        while index < len(packet): #step through each byte of the packet
-            #print("Index: " + str(index))
-            serialByte = packet[index] #the byte we are looking at is the one currently at index
-            #print(serialByte)
-            if (isWhiteSpace(serialByte)): #ignore whitespace again if found
-                return
-            if serialByte == START_MARKER and not receiving: #if start marker is found
-                #print("Start marker received")
-                receiving = True #record that a packet is beginning to be received
-                commandReceived = False #record that a packet was in fact received
-                index = index + 1
-                continue
-            if serialByte == START_MARKER and receiving: #Reset everything if starting again
-                return
-            if(receiving): #if looking for a packet
-                serialByte = packet[index]
-                #print("Serial Byte: " + serialByte)
-                if not commandReceived:
-                    if (serialByte == COMMAND_SEP): #If the command separator is received
-                        index = index + 1 #count forward one because there is not a command in this byte
-                        commandReceived = True
-                        #print("command recieved")
-                        continue
-                    elif (serialByte == END_MARKER): #If end marker is reached
-                        return
-                    else:
-                        index = index + 1
+        if serialByte == START_MARKER and not receiving: #if start marker is found
+            #print("Start marker received")
+            receiving = True #record that a packet is beginning to be received
+            commandReceived = False #record that a packet was in fact received
+            index = index + 1
+            continue
+        if serialByte == START_MARKER and receiving: #Reset everything if starting again
+            return
+        if(receiving): #if looking for a packet
+            serialByte = packet[index]
+            #print("Serial Byte: " + serialByte)
+            if not commandReceived:
+                if (serialByte == COMMAND_SEP): #If the command separator is received
+                    index = index + 1 #count forward one because there is not a command in this byte
+                    commandReceived = True
+                    #print("command recieved")
+                    continue
+                elif (serialByte == END_MARKER): #If end marker is reached
+                    return
                 else:
-                    cmdBuffer = packet[index-4:index-1]
-                    #print("cmdBuffer: " + cmdBuffer)
-                    if (cmdBuffer == "ROB"): #Check if the received string is "ROB"
-                        #print("ROB") #this is for position of the robot
-                        while packet[index+cmdIndex] != VALUE_SEP:
-                            cmdIndex = cmdIndex + 1
-                        posRobx= int(packet[index:index+cmdIndex])
-                        index = index + cmdIndex + 1
-                        cmdIndex = 0
-                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
-                            cmdIndex = cmdIndex + 1
-                        posRoby= int(packet[index:index+cmdIndex])
-                        cmdIndex = 0
-                        commandReceived = False
-                    elif (cmdBuffer == "IMU"): #Check if the received string is "IMU"
-                        # print("IMU Signal Received")
-                        # while packet[index+cmdIndex] != VALUE_SEP:
-                        #     cmdIndex = cmdIndex + 1
-                        # velRoby= int(packet[index:index+cmdIndex])
-                        # index = index + cmdIndex + 1
-                        # cmdIndex = 0
-                        # while packet[index+cmdIndex] != VALUE_SEP:
-                        #     cmdIndex = cmdIndex + 1
-                        # velRoby= int(packet[index:index+cmdIndex])
-                        # index = index + cmdIndex + 1
-                        # cmdIndex = 0
-                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
-                            #print("test")
-                            try:
-                                float(packet[index+cmdIndex])
-                                #print("adding: " + packet[index+cmdIndex])
-                            except ValueError:
-                                print("Invalid packet contents")
-                                return
-                            cmdIndex = cmdIndex + 1
-                        #print("Value: " + packet[index:index+cmdIndex])
-                        posRobt= float(packet[index:index+cmdIndex])*np.pi/180
-                        index = index + cmdIndex + 1
-                        cmdIndex = 0
-                        commandReceived = False
-                        #print("End Function")
-                        return
-                    elif (cmdBuffer == "OPP"): #Check if the received string is "OPP" #which indicates tracking the position of opponent
-                        while packet[index+cmdIndex] != VALUE_SEP:
-                            cmdIndex = cmdIndex + 1
-                        posOppx= int(packet[index:index+cmdIndex])
-                        index = index + cmdIndex + 1
-                        cmdIndex = 0
-                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
-                            cmdIndex = cmdIndex + 1
-                        posOppy= int(packet[index:index+cmdIndex])
-                        cmdIndex = 0
-                        commandReceived = False
-                    elif (cmdBuffer == "BAL"): #Check if the received string is "BAL" #tracking position of the ball
-                        while packet[index+cmdIndex] != VALUE_SEP:
-                            cmdIndex = cmdIndex + 1
-                        posBallx= int(packet[index:index+cmdIndex])
-                        index = index + cmdIndex + 1
-                        cmdIndex = 0
-                        while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
-                            cmdIndex = cmdIndex + 1
-                        posBally= int(packet[index:index+cmdIndex])
-                        cmdIndex = 0
-                        commandReceived = False
-                    else:
-                        print("Unknown command")
-                        print(cmdBuffer)
-                        commandReceived = False
+                    index = index + 1
             else:
-                index = index + 1
-    else:
-        #print("Not reading")
-        return
-## end def pull()
+                cmdBuffer = packet[index-4:index-1]
+                #print("cmdBuffer: " + cmdBuffer)
+                if (cmdBuffer == "ROB"): #Check if the received string is "ROB"
+                    #print("ROB") #this is for position of the robot
+                    while packet[index+cmdIndex] != VALUE_SEP:
+                        cmdIndex = cmdIndex + 1
+                    posRobx= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
+                        cmdIndex = cmdIndex + 1
+                    posRoby= int(packet[index:index+cmdIndex])
+                    cmdIndex = 0
+                    commandReceived = False
+                elif (cmdBuffer == "IMU"): #Check if the received string is "IMU"
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
+                        #print("test")
+                        try:
+                            float(packet[index+cmdIndex])
+                            #print("adding: " + packet[index+cmdIndex])
+                        except ValueError:
+                            print("Invalid packet contents")
+                            return
+                        cmdIndex = cmdIndex + 1
+                    #print("Value: " + packet[index:index+cmdIndex])
+                    posRobt= float(packet[index:index+cmdIndex])*np.pi/180
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    commandReceived = False
+                    #print("End Function")
+                    return
+                elif (cmdBuffer == "RAD"): #Check if the received string is "OPP" #which indicates tracking the position of opponent
+                    while packet[index+cmdIndex] != VALUE_SEP:
+                        if packet[index+cmdIndex] == START_MARKER: return
+                        cmdIndex = cmdIndex + 1
+                    posRobx= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
+                        try:
+                            float(packet[index+cmdIndex])
+                            #print("adding: " + packet[index+cmdIndex])
+                        except ValueError:
+                            print("Invalid packet contents")
+                            return
+                        if packet[index+cmdIndex] == START_MARKER: return
+                        cmdIndex = cmdIndex + 1
+                    posRoby= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
+                        try:
+                            float(packet[index+cmdIndex])
+                            #print("adding: " + packet[index+cmdIndex])
+                        except ValueError:
+                            print("Invalid packet contents")
+                            return
+                        if packet[index+cmdIndex] == START_MARKER: return
+                        cmdIndex = cmdIndex + 1
+                    posBallx= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
+                        try:
+                            float(packet[index+cmdIndex])
+                            #print("adding: " + packet[index+cmdIndex])
+                        except ValueError:
+                            print("Invalid packet contents")
+                            return
+                        if packet[index+cmdIndex] == START_MARKER: return
+                        cmdIndex = cmdIndex + 1
+                    posBally= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
+                        try:
+                            float(packet[index+cmdIndex])
+                            #print("adding: " + packet[index+cmdIndex])
+                        except ValueError:
+                            print("Invalid packet contents")
+                            return
+                        if packet[index+cmdIndex] == START_MARKER: return
+                        cmdIndex = cmdIndex + 1
+                    posOppx= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
+                        try:
+                            float(packet[index+cmdIndex])
+                            #print("adding: " + packet[index+cmdIndex])
+                        except ValueError:
+                            print("Invalid packet contents")
+                            return
+                        if packet[index+cmdIndex] == START_MARKER: return
+                        cmdIndex = cmdIndex + 1
+                    posOppy= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    commandReceived = False
+                elif (cmdBuffer == "OPP"): #Check if the received string is "OPP" #which indicates tracking the position of opponent
+                    while packet[index+cmdIndex] != VALUE_SEP:
+                        cmdIndex = cmdIndex + 1
+                    posOppx= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
+                        cmdIndex = cmdIndex + 1
+                    posOppy= int(packet[index:index+cmdIndex])
+                    cmdIndex = 0
+                    commandReceived = False
+                elif (cmdBuffer == "BAL"): #Check if the received string is "BAL" #tracking position of the ball
+                    while packet[index+cmdIndex] != VALUE_SEP:
+                        cmdIndex = cmdIndex + 1
+                    posBallx= int(packet[index:index+cmdIndex])
+                    index = index + cmdIndex + 1
+                    cmdIndex = 0
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
+                        cmdIndex = cmdIndex + 1
+                    posBally= int(packet[index:index+cmdIndex])
+                    cmdIndex = 0
+                    commandReceived = False
+                else:
+                    print("Unknown command")
+                    print(cmdBuffer)
+                    commandReceived = False
+        else:
+            index = index + 1
     
 
 def isWhiteSpace(character): #checks if input value from serial is a blank / whitespace character
@@ -401,8 +481,10 @@ def isWhiteSpace(character): #checks if input value from serial is a blank / whi
     if (character == '\n'):
         return True
     if (character == '⸮'):
-        ser.reset_input_buffer()
-        ser.reset_output_buffer()
+        ser1.reset_input_buffer()
+        ser1.reset_output_buffer()
+        ser0.reset_input_buffer()
+        ser0.reset_output_buffer()
         return True
     return False
 ##end def isWhiteSpace
@@ -411,33 +493,34 @@ def isWhiteSpace(character): #checks if input value from serial is a blank / whi
 def main():
     global objective
     test = 1
-    ser.flush()
     try:
         while test != 5:
+            pull()
+            #printcoords()
             defense = posBally < 3660/2
             if defense: #Ball is on our half
                 if checkDefensive(): #We are in a protective position
                     objective = scoringPosition() #Try to score
                     if positionCheck(objective): #Robot is touching ball
                         push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
-                        updatePosRob()
-                        updateBall()
+                        #updatePosRob()
+                        #updateBall()
                     else: #Robot is far from ball
                         push(motorSpeed((goal2Speed(objective,10))))
-                        updatePosRob()
+                        #updatePosRob()
                 else: #We are not in a protective position
                     objective = defensePosition()
                     push(motorSpeed((goal2Speed(objective,0))))
-                    updatePosRob()
+                    #updatePosRob()
             else: #Ball is on their half
                 objective = scoringPosition()
                 if positionCheck(objective): #Robot is touching ball
                     push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
-                    updatePosRob()
-                    updateBall()
+                    #updatePosRob()
+                    #updateBall()
                 else: #Robot is far from ball
                     push(motorSpeed((goal2Speed(objective,5))))
-                    updatePosRob()
+                    #updatePosRob()
             # updateMap()
             # #test = test + 1
             # if cv.waitKey(20) & 0xFF==ord('d'):
@@ -448,7 +531,7 @@ def main():
     except KeyboardInterrupt:
         print("turds")
         stop = "<STOP>"
-        ser.write(stop.encode('utf-8'))
+        ser0.write(stop.encode('utf-8'))
         # cv.destroyAllWindows()
 ## end def main()
 
@@ -456,31 +539,29 @@ def main():
 def rotationTest(): # test function to run the pull() function and make sure it is working with serial port
     global objective
     try:
-        ser.flush()
-        ser.reset_output_buffer()
-        ser.reset_input_buffer()
         while True:
             try:
                 pull()
             except SerialTimeoutException:
                 print("Resetting input buffer")
-                ser.reset_input_buffer()
-                ser.reset_output_buffer()
+                ser0.reset_input_buffer()
+                ser0.reset_output_buffer()
+                ser1.reset_input_buffer()
+                ser1.reset_output_buffer()
             try:
                 push(motorSpeed((goal2Speed((posRobx,posRoby,0),10)))) 
             except SerialTimeoutException:
                 print("Failure of push")
-                ser.reset_output_buffer()
+                ser0.reset_output_buffer()
                 print("Push Flushed")
     except KeyboardInterrupt:
         print("turds")
-        ser.write(b"<STP|>")        
+        ser0.write(b"<STP|>")        
 ## end def rotationTest()        
 
 
 def pullTest():
     try:
-        ser.flush()
         while True:
             pull()
             print("After Pull")
@@ -489,5 +570,4 @@ def pullTest():
         
 
 
-rotationTest()
-
+main()

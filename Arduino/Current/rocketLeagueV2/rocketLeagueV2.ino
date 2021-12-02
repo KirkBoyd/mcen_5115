@@ -27,27 +27,27 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 //had to flip the two below, not sure why
 #define aIn1_FL 39  //mega or teensy pin //SHOULD BE WHITE
 #define aIn2_FL 38  //mega or teensy pin //SHOULD BE WHITE
-#define pwm_FL 10   // speed for front left motor //SHOULD BE WHITE
+#define pwm_FL 10 //6 //10   // speed for front left motor //SHOULD BE WHITE
 
 /* Front Right  (FR) Motor - YELLOW */
 #define mFR 2 //index number for FR motor, may be used for logic
 //had to flip the two below, not sure why
 #define aIn1_FR 40  //mega or teensy pin //SHOULD BE YELLOW
 #define aIn2_FR 41  //mega or teensy pin //SHOULD BE YELLOW
-#define pwm_FR 11   //speed for front right motor //SHOULD BE YELLOW
+#define pwm_FR 11 //7 //11   //speed for front right motor //SHOULD BE YELLOW
 
 /* Back Left    (BL) Motor - BLUE   */
 #define mBL 3 //index number for BL motor, may be used for logic
-#define aIn1_BL 15  //mega or teensy pin //SHOULD BE BLUE
-#define aIn2_BL 16  //mega or teensy pin //SHOULD BE BLUE
-#define pwm_BL 12   //speed for back left motor //SHOULD BE BLUE
+#define aIn1_BL 16 //15  //mega or teensy pin //SHOULD BE BLUE
+#define aIn2_BL 15 //16  //mega or teensy pin //SHOULD BE BLUE
+#define pwm_BL 12 //8 //12   //speed for back left motor //SHOULD BE BLUE
 
 /* Back Right   (BR) Motor - GREEN  */
 #define mBR 4 //index number for BR motor, may be used for logic
 //had to flip the two below, not sure why
 #define aIn1_BR 17  //mega or teensy pin //SHOULD BE GREEN
 #define aIn2_BR 22  //mega or teensy pin //SHOULD BE GREEN
-#define pwm_BR 13   //speed for back right motor //SHOULD BE GREEN
+#define pwm_BR 13 //9 //13   //speed for back right motor //SHOULD BE GREEN
 
 void setup(){
   /* Initialise the sensor */
