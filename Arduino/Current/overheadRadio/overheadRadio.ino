@@ -51,7 +51,7 @@ char buildInt[4];
 void setup()
 {
   // Open a serial port so we can see the data we receive
-  Serial.begin(38400);
+  Serial.begin(9600);
   Serial.print("Node ");
   Serial.print(MYNODEID,DEC);
   Serial.println(" ready");  

@@ -10,8 +10,8 @@ from serial.serialutil import SerialTimeoutException
 # Last edited by Kirk Boyd Nov 26, 21
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser0 = serial.Serial('/dev/ttyACM0',38400,write_timeout=.5,timeout=.5) #IMU and Motors
-ser1 = serial.Serial('/dev/ttyACM1',38400,write_timeout=.5,timeout=.5) #Radio
+ser0 = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #IMU and Motors
+ser1 = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
 ser0.flush()
@@ -55,6 +55,8 @@ angleOffset = -0.4886921905584123; #Correct for gps angle
 ## World Calibration
 # North is towardsglass
 # East is towards Lockers
+# NW actual corner:
+# 
 xmin = 5
 xmax = 350
 ymin = 25
@@ -62,8 +64,8 @@ ymax = 495
 
 
 def printInfo():
-    #print("posBallX: "+ str(posBallx) +" posBallY: "+ str(posBally) +" posOPPX: "+ str(posOppx) +" posOppY: "+ str(posOppy) +" posRobX: "+ str(posRobx) +" posRoby: "+ str(posRoby) + " posRobt: " + str(posRobt))
-    print("Vx: "+ str(robotVelocity[0]) + " Vy: " + str(robotVelocity[1])+ " Vt: " + str(robotVelocity[2]))
+    print("posBallX: "+ str(posBallx) +" posBallY: "+ str(posBally) +" posOPPX: "+ str(posOppx) +" posOppY: "+ str(posOppy) +" posRobX: "+ str(posRobx) +" posRoby: "+ str(posRoby) + " posRobt: " + str(posRobt))
+    #print("Vx: "+ str(robotVelocity[0]) + " Vy: " + str(robotVelocity[1])+ " Vt: " + str(robotVelocity[2]))
     #print("Objective: " + str(objective))
     
 # Robot Parameters
@@ -377,7 +379,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if index+cmdIndex >= lenPacket: return
                     #print("Value: " + packet[index:index+cmdIndex])
                     try:
-                        posRobt= (float(packet[index:index+cmdIndex])-32)*np.pi/180
+                        posRobt= (float(packet[index:index+cmdIndex]))*np.pi/180
                     except ValueError:
                         return
                     index = index + cmdIndex + 1
