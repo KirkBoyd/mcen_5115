@@ -10,7 +10,7 @@ from serial.serialutil import SerialTimeoutException
 # Last edited by Kirk Boyd Nov 26, 21
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser0 = serial.Serial('/dev/ttyACM3',38400,write_timeout=.5,timeout=.5) #IMU and Motors
+ser0 = serial.Serial('/dev/ttyACM1',38400,write_timeout=.5,timeout=.5) #IMU and Motors
 ser1 = serial.Serial('/dev/ttyACM0',38400,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
@@ -50,13 +50,12 @@ robotMotorSpeed = np.empty((1,4),float)
 robotVelocity = np.empty((3,1),int)
 defense = False
 objective
-def printFnfo():
-    print("posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +"posBallX: "+ string(posBallx) +)
-    print(posBally)
-    print(posOppx)
-    print(posOppy)
-    print(posRobx)
-    print(posRoby)
+angleOffset = -0.4886921905584123; #Correct for gps angle
+def printInfo():
+    print("posBallX: "+ str(posBallx) +" posBallY: "+ str(posBally) +" posOPPX: "+ str(posOppx) +" posOppY: "+ str(posOppy) +" posRobX: "+ str(posRobx) +" posRoby: "+ str(posRoby) + " posRobt: " + str(posRobt))
+    print("Vx: "+ str(robotVelocity[0]) + " Vy: " + str(robotVelocity[1])+ " Vt: " + str(robotVelocity[2]))
+    #print("Objective: " + str(objective))
+    
 # Robot Parameters
 # Full Scale
 r = 97/2 # radius in mm
@@ -89,7 +88,7 @@ def motorSpeed(V): #Input vector (vx,vy,theta) [mm/s],[mm/s],[rad/s]
     motorSpeed = motorSpeed*maxRPM/max(abs(motorSpeed)) #Normalize rpm
     robotMotorSpeed = motorSpeed
     motorSpeed = [motorSpeed[0],motorSpeed[1],motorSpeed[2],motorSpeed[3]]
-    motorSpeedNorm = np.interp(motorSpeed,[-maxRPM, maxRPM],[-255,255]) #Normalize rpm to 255 maximum value
+    motorSpeedNorm = np.interp(motorSpeed,[-maxRPM, maxRPM],[-254,254]) #Normalize rpm to 255 maximum value
     motorSpeedOut = motorSpeedNorm.astype('int32') #Convert motor rpm to integer
     inA1 = motorSpeedNorm >= 0 #Logic for direction
     inA2 = motorSpeedNorm <= 0 #Logic for direction
@@ -227,12 +226,11 @@ def checkDefensive(): #Checks if the robot is close enough to the line from the 
     return d<50
 
 def push(data): #pushes data TO the arduino from the pi
-    if ser0.out_waiting == 0:
+    if ser0.out_waiting < 10:
         #print("Pushing: " + str(data))
         motorSpeedAbs = data[0]
         inA1 = data[1]
         inA2 = data[2]
-        #<MOT|motor-rpm-in1-in2>
         motor = ""
         outA1 = ""
         outA2 = ""
@@ -244,27 +242,18 @@ def push(data): #pushes data TO the arduino from the pi
                 motor = motor + "-"
                 outA1 = outA1 + "-"
                 outA2 = outA2 + "-"
-            
-            packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">"
+                
+        packet = "<MOT|" + motor + "-" + outA1 + "-" + outA2 + ">\n"
         if connected:
-            ser0.write(packet.encode('utf-8'))
-            print('Packet Sent')
+            try:
+                ser0.write(packet.encode('utf-8'))
+                #print('Sent:' + packet)
+            except serial.serialutil.SerialTimeoutException:
+                ser0.reset_output_buffer
+                ser1.reset_output_buffer
+                return
+    else: ser0.reset_output_buffer
 
-class TimeoutError(Exception):
-    pass
-
-class timeout:
-    def __init__(self,seconds=1,error_message='Timeout'):
-        self .seconds = seconds
-        self.error_message = error_message
-    def handle_timeout(self, signum, frame):
-        raise TimeoutError(self.error_message)
-        pass
-    def __enter__(self):
-        signal.signal(signal.SIGALRM, self.handle_timeout)
-        signal.setitimer(signal.ITIMER_REAL,self.seconds)
-    def __exit__(self, type, value, traceback):
-        signal.alarm(0)
 def pull():
     if (ser0.in_waiting > 0): 
         #print("Bits")
@@ -316,7 +305,8 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
     index = 0
     cmdIndex = 0
     #print(packet)
-    while index < len(packet): #step through each byte of the packet
+    lenPacket = len(packet)
+    while index < lenPacket: #step through each byte of the packet
         #print("Index: " + str(index))
         serialByte = packet[index] #the byte we are looking at is the one currently at index
         #print(serialByte)
@@ -359,6 +349,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                     cmdIndex = 0
                     commandReceived = False
                 elif (cmdBuffer == "IMU"): #Check if the received string is "IMU"
+                    if index+cmdIndex >= lenPacket: return
                     while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
                         #print("test")
                         try:
@@ -368,8 +359,12 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                             print("Invalid packet contents")
                             return
                         cmdIndex = cmdIndex + 1
+                        if index+cmdIndex >= lenPacket: return
                     #print("Value: " + packet[index:index+cmdIndex])
-                    posRobt= float(packet[index:index+cmdIndex])*np.pi/180
+                    try:
+                        posRobt= float(packet[index:index+cmdIndex])*np.pi/180 + angleOffset
+                    except ValueError:
+                        return
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     commandReceived = False
@@ -379,6 +374,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                     while packet[index+cmdIndex] != VALUE_SEP:
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
+                        if index+cmdIndex > lenPacket: return
                     posRobx= int(packet[index:index+cmdIndex])
                     index = index + cmdIndex + 1
                     cmdIndex = 0
@@ -391,6 +387,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                             return
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
+                        if index+cmdIndex > lenPacket: return
                     posRoby= int(packet[index:index+cmdIndex])
                     index = index + cmdIndex + 1
                     cmdIndex = 0
@@ -403,6 +400,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                             return
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
+                        if index+cmdIndex > lenPacket: return
                     posBallx= int(packet[index:index+cmdIndex])
                     index = index + cmdIndex + 1
                     cmdIndex = 0
@@ -415,6 +413,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                             return
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
+                        if index+cmdIndex > lenPacket: return
                     posBally= int(packet[index:index+cmdIndex])
                     index = index + cmdIndex + 1
                     cmdIndex = 0
@@ -427,6 +426,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                             return
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
+                        if index+cmdIndex > lenPacket: return
                     posOppx= int(packet[index:index+cmdIndex])
                     index = index + cmdIndex + 1
                     cmdIndex = 0
@@ -439,6 +439,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                             return
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
+                        if index+cmdIndex > lenPacket: return
                     posOppy= int(packet[index:index+cmdIndex])
                     index = index + cmdIndex + 1
                     cmdIndex = 0
@@ -496,13 +497,13 @@ def main():
     try:
         while test != 5:
             pull()
-            #printcoords()
+            printInfo()
             defense = posBally < 3660/2
             if defense: #Ball is on our half
                 if checkDefensive(): #We are in a protective position
                     objective = scoringPosition() #Try to score
                     if positionCheck(objective): #Robot is touching ball
-                        push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
+                        push(motorSpeed((goal2Speed((objective[0],objective[1],objective[2]),10))))
                         #updatePosRob()
                         #updateBall()
                     else: #Robot is far from ball
@@ -515,7 +516,7 @@ def main():
             else: #Ball is on their half
                 objective = scoringPosition()
                 if positionCheck(objective): #Robot is touching ball
-                    push(motorSpeed((goal2Speed((posTargetx,posTargety,objective[2]),10))))
+                    push(motorSpeed((goal2Speed((objective[0],objective[1],objective[2]),10))))
                     #updatePosRob()
                     #updateBall()
                 else: #Robot is far from ball
@@ -549,7 +550,8 @@ def rotationTest(): # test function to run the pull() function and make sure it 
                 ser1.reset_input_buffer()
                 ser1.reset_output_buffer()
             try:
-                push(motorSpeed((goal2Speed((posRobx,posRoby,0),10)))) 
+                push(motorSpeed((goal2Speed((posRobx,posRoby,0),10))))
+                print("push")
             except SerialTimeoutException:
                 print("Failure of push")
                 ser0.reset_output_buffer()

@@ -23,3 +23,9 @@ void moveMotor(int motorNum, float speedRatio, bool ina1, bool ina2){ // motorNu
     analogWrite(pwm_BR, speedRatio*percentage);
   }
 }
+
+//<MOT|255-255-255-255-1-1-1-1-0-0-0-0>
+//<MOT|255-255-255-255-0-0-0-0-1-1-1-1>
+//<MOT|255-255-255-255-1-1-1-1-1-1-1-1>
+//<MOT|255-255-255-255-0-0-0-0-1-1-1-1>
+//<MOT|255-255-255-255-0-0-0-0-0-0-0-0>

@@ -8,7 +8,8 @@ import time
 #i2c = busio.I2C(board.SCL, board.SDA)
 if __name__ == '__main__':
     try:
-        ser = serial.Serial('/dev/ttyACM0',38400,timeout=1,write_timeout=1)
+        ser1 = serial.Serial('/dev/ttyACM0',38400,timeout=1,write_timeout=1)
+        ser = serial.Serial('/dev/ttyACM3',38400,timeout=1,write_timeout=1)
         ser.reset_input_buffer()
         ser.reset_output_buffer()
         i=1
@@ -24,6 +25,12 @@ if __name__ == '__main__':
                 ser.write(packet.encode('utf-8'))
                 #ser.write(b"<MOT|255-255-255-255-1-1-1-1-0-0-0-0>\n")
                 i = i+1
+                
+                if (i % 10) == 0:
+                    ser.reset_input_buffer()
+                    ser.reset_output_buffer()
+                    ser1.reset_input_buffer()
+                    ser1.reset_output_buffer()
                 
     except KeyboardInterrupt:
         ser.write(b"<STP|>")
