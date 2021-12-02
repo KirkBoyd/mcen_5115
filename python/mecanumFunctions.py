@@ -10,8 +10,8 @@ from serial.serialutil import SerialTimeoutException
 # Last edited by Kirk Boyd Nov 26, 21
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser0 = serial.Serial('/dev/ttyACM3',9600,write_timeout=.5,timeout=.5) #IMU and Motors
-ser1 = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #Radio
+ser0 = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #IMU and Motors
+ser1 = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
 ser0.flush()
@@ -126,18 +126,19 @@ def robot2World(cords): #Takes in robot coordinates (rx, ry, rt) and returns wor
     return [x,y]
 
 def goal2Speed(goal,bias,delta=np.pi/6): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
-    global robotVelovity
+    global robotVelocity
     
     
     robotGoalCords = world2Robot(goal)
-    dx = robotGoalCords[0]
-    dy = -robotGoalCords[1]
+    dy = robotGoalCords[0]
+    dx = robotGoalCords[1]
     dt = goal[2] - posRobt
     if abs(dt) > np.pi:
         dt = -dt
     if abs(dt) < delta:
         dt = 0
     dt = dt*bias
+    #print("goal2Speed: "+str(dx[0])+str(dy[0]) +str(dt))
     robotVelocity = [dx[0],dy[0],dt]
     return [dx[0],dy[0],dt]
 
@@ -388,8 +389,10 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if not imuBiasReceived:
                             imuBias = (float(packet[index:index+cmdIndex])*2)*(np.pi/180)
                             imuBiasReceived = True
-                        #print(packet[index:index+cmdIndex])    
+                        #print(packet[index:index+cmdIndex])
                         posRobt= (float(packet[index:index+cmdIndex])*2)*(np.pi/180) - imuBias
+                        if posRobt > np.pi:
+                            posRobt = posRobt-np.pi*2
                     except ValueError:
                         return
                     index = index + cmdIndex + 1
@@ -633,8 +636,14 @@ def pullTest():
     except KeyboardInterrupt:
         print("turds")
 def test():
-    speed = (1,0,0)
-    vals = motorSpeed(speed)
-    print(vals)
-
-coordTest()
+    try:
+        while True:
+            pull()
+            vals = motorSpeed(goal2Speed((183,252,0),1))
+            push(vals)
+            printInfo()
+            print(vals)
+    except KeyboardInterrupt:
+        print("turds")
+        ser0.write(b"<STP|>")
+test()
