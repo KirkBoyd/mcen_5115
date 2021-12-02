@@ -51,6 +51,16 @@ robotVelocity = np.empty((3,1),int)
 defense = False
 objective
 angleOffset = -0.4886921905584123; #Correct for gps angle
+
+## World Calibration
+# North is towardsglass
+# East is towards Lockers
+xmin = 5
+xmax = 350
+ymin = 25
+ymax = 495
+
+
 def printInfo():
     #print("posBallX: "+ str(posBallx) +" posBallY: "+ str(posBally) +" posOPPX: "+ str(posOppx) +" posOppY: "+ str(posOppy) +" posRobX: "+ str(posRobx) +" posRoby: "+ str(posRoby) + " posRobt: " + str(posRobt))
     print("Vx: "+ str(robotVelocity[0]) + " Vy: " + str(robotVelocity[1])+ " Vt: " + str(robotVelocity[2]))
@@ -380,7 +390,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
                         if index+cmdIndex > lenPacket: return
-                    posRobx= int(packet[index:index+cmdIndex])
+                    posRobx= int(reamonToWorldX(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
@@ -393,7 +403,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
                         if index+cmdIndex > lenPacket: return
-                    posRoby= int(packet[index:index+cmdIndex])
+                    posRoby= int(reamonToWorldY(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
@@ -406,7 +416,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
                         if index+cmdIndex >= lenPacket: return
-                    posOppx= int(packet[index:index+cmdIndex])
+                    posOppx= int(reamonToWorldX(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
@@ -419,7 +429,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
                         if index+cmdIndex >= lenPacket: return
-                    posOppy= int(packet[index:index+cmdIndex])
+                    posOppy= int(reamonToWorldY(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
@@ -432,7 +442,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
                         if index+cmdIndex >= lenPacket: return
-                    posBallx= int(packet[index:index+cmdIndex])
+                    posBallx= int(reamonToWorldX(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
@@ -445,19 +455,19 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
                         if index+cmdIndex >= lenPacket: return
-                    posBally= int(packet[index:index+cmdIndex])
+                    posBally= int(reamonToWorldY(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     commandReceived = False
                 elif (cmdBuffer == "OPP"): #Check if the received string is "OPP" #which indicates tracking the position of opponent
                     while packet[index+cmdIndex] != VALUE_SEP:
                         cmdIndex = cmdIndex + 1
-                    posOppx= int(packet[index:index+cmdIndex])
+                    posOppx= int(reamonToWorldX(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER:
                         cmdIndex = cmdIndex + 1
-                    posOppy= int(packet[index:index+cmdIndex])
+                    posOppy= int(reamonToWorldY(packet[index:index+cmdIndex]))
                     cmdIndex = 0
                     commandReceived = False
                 elif (cmdBuffer == "BAL"): #Check if the received string is "BAL" #tracking position of the ball
@@ -495,6 +505,14 @@ def isWhiteSpace(character): #checks if input value from serial is a blank / whi
     return False
 ##end def isWhiteSpace
 
+def reamonToWorldX(x):
+    x = int(x)
+    return (x-5)/(350-5)*2440
+
+def reamonToWorldY(y):
+    y = int(y)
+    return (1-(y-25)/(495-25))*3660
+    
 
 def main():
     global objective
@@ -525,7 +543,7 @@ def main():
                     #updatePosRob()
                     #updateBall()
                 else: #Robot is far from ball
-                    push(motorSpeed((goal2Speed(objective,.05))))
+                    push(motorSpeed((goal2Speed(objective,0))))
                     #updatePosRob()
             # updateMap()
             # #test = test + 1
@@ -565,7 +583,28 @@ def rotationTest(): # test function to run the pull() function and make sure it 
         print("turds")
         ser0.write(b"<STP|>")        
 ## end def rotationTest()        
-
+def coordTest(): # test function to run the pull() function and make sure it is working with serial port
+    try:
+        while True:
+            try:
+                pull()
+            except SerialTimeoutException:
+                print("Resetting input buffer")
+                ser0.reset_input_buffer()
+                ser0.reset_output_buffer()
+                ser1.reset_input_buffer()
+                ser1.reset_output_buffer()
+            try:
+                push(motorSpeed((goal2Speed((2440/2,3660/2,0),1))))
+                printInfo()
+                print("push")
+            except SerialTimeoutException:
+                print("Failure of push")
+                ser0.reset_output_buffer()
+                print("Push Flushed")
+    except KeyboardInterrupt:
+        print("turds")
+        ser0.write(b"<STP|>") 
 
 def pullTest():
     try:
@@ -577,4 +616,4 @@ def pullTest():
         
 
 
-main()
+coordTest()
