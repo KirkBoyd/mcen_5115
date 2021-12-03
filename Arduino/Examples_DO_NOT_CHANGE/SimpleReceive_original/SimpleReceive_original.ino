@@ -3,7 +3,7 @@
 // Based on RFM69 library sample code by Felix Rusu
 // http://LowPowerLab.com/contact
 // Modified for RFM69HCW by Mike Grusin, 4/16
-
+ 
 // This sketch will show you the basics of using an
 // RFM69HCW radio module. SparkFun's part numbers are:
 // 915MHz: https://www.sparkfun.com/products/12775
@@ -109,4 +109,3 @@ void Blink(byte PIN, int DELAY_MS)
   delay(DELAY_MS);
   digitalWrite(PIN,LOW);
 }
-
