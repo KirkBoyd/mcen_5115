@@ -24,7 +24,7 @@ ledIMU = LED(25)
 ledRAD = LED(13)
 
 #ser = serial.Serial('COM6',4800) #winndows serial port
-ser0 = serial.Serial('/dev/ttyACM2',9600,write_timeout=.5,timeout=.5) #IMU and Motors
+ser0 = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #IMU and Motors
 ser1 = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
@@ -325,6 +325,8 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
     global imuBiasReceived
     global imuCounter
     global radCounter
+    global ledIMU
+    global ledRAD
 
 
     START_MARKER = '<'  #marks the beginning of a data packet
@@ -385,7 +387,8 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                     cmdIndex = 0
                     commandReceived = False
                 elif (cmdBuffer == "IMU"): #Check if the received string is "IMU"
-                    imuCounter = (imuCounter+1)%10
+                    imuCounter = (imuCounter+1)%100
+                    #print(imuCounter)
                     if imuCounter == 0:
                         print("IMU toggle")
                         ledIMU.toggle()
@@ -663,7 +666,7 @@ def test():
     try:
         while True:
             pull()
-            #printInfo()
+            printInfo()
             if imuBiasReceived:
                 vals = motorSpeed(goal2Speed((180,250,0),10))
                 push(vals)
@@ -676,7 +679,7 @@ if __name__ == '__main__':
     print('------------------------')
     print('Waiting for start button')
     print('------------------------')
-    while not button.is_pressed:
+    while not button.value:
         if buttonGRN.is_pressed:
             team = 'green'
             posTargetx = 192
@@ -693,9 +696,5 @@ if __name__ == '__main__':
             posProtecty = 499 #Our Goal
             ledBLU.on()
             ledGRN.off()
-    button.wait_for_press()
     print("Started")
-    
-    
-    
     test()
