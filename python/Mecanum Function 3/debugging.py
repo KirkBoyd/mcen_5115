@@ -1,0 +1,2 @@
+def printInfo(world):
+    pass
