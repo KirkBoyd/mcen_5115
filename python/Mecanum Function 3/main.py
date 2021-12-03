@@ -47,7 +47,9 @@ def testDebug():
     try:
         debugWorld = world.worldClass()
         while True:
-            pass
+            debugWorld = communication.pull(debugWorld,serMotors,serRadio)
+            #debugging.printRadio(debugWorld)
+            print("loop")
     except KeyboardInterrupt:
         print("turds")
         serMotors.write(b"<STP|>")

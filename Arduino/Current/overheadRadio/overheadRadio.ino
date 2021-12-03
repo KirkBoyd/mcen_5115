@@ -102,7 +102,7 @@ void loop()
         //Serial.print(gx);
         //Serial.print(" ");
         //Serial.println(gy);
-        Serial.print("<RAD|");
+        Serial.print("<");
         Serial.print(gx);
         Serial.print("-");
         Serial.print(gy);

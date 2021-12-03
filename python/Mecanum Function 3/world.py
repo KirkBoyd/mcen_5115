@@ -51,7 +51,7 @@ class worldClass():
     def robot2world(): #Function to convert world coordinates to robot coordinates (Incomplete)
         pass
 
-    def isWhiteSpace(character): #checks if input value from serial is a blank / whitespace character
+    def isWhiteSpace(self,character): #checks if input value from serial is a blank / whitespace character
         if (character == ' '):
             return True
         if (character == '\r'):
@@ -71,7 +71,7 @@ class worldClass():
         lenInPacket = len(inPacket)
         while index < lenInPacket: #Loops through incoming packet
             serialByte = inPacket[index] #Grabs a character
-            if isWhiteSpace(serialByte): # Cancel everything if their is a bad character
+            if self.isWhiteSpace(serialByte): # Cancel everything if their is a bad character
                 return
             if serialByte == START_MARKER and not receiving:
                 receiving = True
@@ -107,7 +107,7 @@ class worldClass():
         lenInPacket = len(inPacket)
         while index < lenInPacket: #Loops through incoming packet
             serialByte = inPacket[index] #Grabs a character
-            if isWhiteSpace(serialByte): # Cancel everything if their is a bad character
+            if self.isWhiteSpace(serialByte): # Cancel everything if their is a bad character
                 return
             if serialByte == START_MARKER and not receiving:
                 receiving = True
@@ -118,10 +118,10 @@ class worldClass():
             if receiving: #Look for packet
                 if serialByte != VALUE_SEP and serialByte != END_MARKER:
                     try:
-                        float(inPacket[index])
-                        valueString = valueString + inPacket[index]
+                        float(serialByte)
+                        valueString = valueString + serialByte
                     except ValueError:
-                        print("Error Converting Character To Float in parseRadio")
+                        print("Error Converting: "  + serialByte + " Character To Float in parseRadio")
                         return
                 elif serialByte == VALUE_SEP:
                     try:

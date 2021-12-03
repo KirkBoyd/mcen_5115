@@ -78,7 +78,7 @@ void loop(){
   IMUstr = String(theta/2); //Divide by two to prevent bit failure 12/2
 
 //  Serial.println(IMUstr);
-      sendPacket = "<IMU|" + IMUstr + ">";
+      sendPacket = "<" + IMUstr + ">";
       Serial.println(sendPacket);
 //  if(Serial.availableForWrite() == 0){
 ////      Serial.printl/n(IMUstr);
