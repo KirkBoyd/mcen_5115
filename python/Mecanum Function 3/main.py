@@ -7,6 +7,12 @@ from gpiozero import LED
 import serial
 import signal
 
+#Helper Files
+import world
+import kinematics
+import debugging
+import communication
+
 # GPIO Variables
 team = 'green'
 button = Button(16)
@@ -20,24 +26,32 @@ ledIMU = LED(25)
 ledRAD = LED(13)
 
 #Serial Communication Initialization and resetting
-ser0 = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #IMU and Motors
-ser1 = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
+serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #IMU and Motors
+serRadio = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
-ser0.flush()
-ser0.reset_output_buffer()
-ser0.reset_input_buffer()
+serMotors.flush()
+serMotors.reset_output_buffer()
+serMotors.reset_input_buffer()
 
-ser1.flush()
-ser1.reset_output_buffer()
-ser1.reset_input_buffer()
+serRadio.flush()
+serRadio.reset_output_buffer()
+serRadio.reset_input_buffer()
 connected = True
 
 
 def playSoccer():
     pass
 
-def testdebug():
+def testDebug():
+    try:
+        debugWorld = world.worldClass()
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print("turds")
+        serMotors.write(b"<STP|>")
+            
     pass
 
 if __name__ == '__main__': #Main Loop
@@ -61,4 +75,5 @@ if __name__ == '__main__': #Main Loop
             posProtecty = 499 #Our Goal
             ledBLU.on()
             ledGRN.off()
-    pass
+    print("Started")
+    testDebug()

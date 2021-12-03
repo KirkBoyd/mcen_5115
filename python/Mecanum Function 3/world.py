@@ -1,7 +1,7 @@
 import numpy as np
 import serial
 
-from python.mecanumFunctions import isWhiteSpace, motorSpeed, reamonToWorldX
+#from python.mecanumFunctions import isWhiteSpace, motorSpeed, reamonToWorldX
 
 class opponentClass:
     def __init__(self,color = "blue"):
@@ -14,8 +14,8 @@ class robotClass:
         self.x = 0
         self.y = 0
         self.theta = 0
-        self.speeds = np.array[0,0,0,0]
-        self.directions = np.array[0,0,0,0]
+        self.speeds = np.array([0,0,0,0])
+        self.directions = np.array([0,0,0,0])
         self.imuBias = 0
         self.imuBiasRecieved = False
         self.color = color
@@ -31,7 +31,10 @@ class worldClass():
         self.opponent = opponentClass()
         self.robot = robotClass()
         self.ball = ballClass()
-        self.radioData = np.zeros[6]
+        self.radioData = np.zeros(6)
+        print("----------------")
+        print("Game Initialized")
+        print("----------------")
 
     def world2robot(self,wx,wy): #Function to convert world to robot coordinates (Complete)
         robotx = self.robot.x + wx*np.cos(self.robot.theta) - wy*np.sin(self.robot.theta)
