@@ -1,5 +1,7 @@
 import numpy as np
 
+from python.mecanumFunctions import motorSpeed
+
 class opponentClass:
     def __init__(self):
         self.x = 0
@@ -10,6 +12,8 @@ class robotClass:
         self.x = 0
         self.y = 0
         self.theta = 0
+        self.speeds = np.array[0,0,0,0]
+        self.direction = np.array[0,0,0,0]
 
 class ballClass:
     def __init(self):
