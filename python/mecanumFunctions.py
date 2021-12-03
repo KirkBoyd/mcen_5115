@@ -135,7 +135,7 @@ def robot2World(cords): #Takes in robot coordinates (rx, ry, rt) and returns wor
 
     return [x,y]
 
-def goal2Speed(goal,bias,delta=np.pi/6): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
+def goal2Speed(goal,bias,delta=.05): #Function to get robot velocity based off the curr robot position and goal positions, bias is for turning speed
     global robotVelocity
     
     
@@ -279,7 +279,7 @@ def push(data): #pushes data TO the arduino from the pi
         if connected:
             try:
                 ser0.write(packet.encode('utf-8'))
-                #print('Sent:' + packet)
+                print('Sent:' + packet)
             except serial.serialutil.SerialTimeoutException:
                 ser0.reset_output_buffer
                 ser1.reset_output_buffer
@@ -313,7 +313,7 @@ def pull():
         if (isWhiteSpace(packet)):
             return # Ignore whitespace
 def parse(packet): #pulls (or receives) data from the arduino on the pi
-    #print("Pulling")
+    #print(packet)
     global posRobx
     global posRoby
     global posRobt
@@ -424,12 +424,12 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                     radCounter = (radCounter+1)%10
                     if radCounter == 0:
                         ledRAD.toggle()
-                    while packet[index+cmdIndex] != VALUE_SEP:
+                    while packet[index+cmdIndex] != VALUE_SEP: #Green Y
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
                         if index+cmdIndex > lenPacket: return
-                    if team == 'green': posRoby= int(reamonToWorldY(packet[index:index+cmdIndex]))                    
-                    else: posOppy= int(reamonToWorldY(packet[index:index+cmdIndex]))
+                    if team == 'green': posRoby= int(reamonToWorldX(packet[index:index+cmdIndex]))                    
+                    else: posOppy= int(reamonToWorldX(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
                     while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP: #Green x
@@ -446,7 +446,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                     else: posOppx= int(reamonToWorldY(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
-                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:  #Green y
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:  #Blue y
                         try:
                             float(packet[index+cmdIndex])
                             #print("adding: " + packet[index+cmdIndex])
@@ -456,7 +456,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                         if packet[index+cmdIndex] == START_MARKER: return
                         cmdIndex = cmdIndex + 1
                         if index+cmdIndex >= lenPacket: return
-                    if team == 'blue': posRoby= int(reamonToWorldY(packet[index:index+cmdIndex]))
+                    if team == 'blue': posRoby= int(reamonToWorldX(packet[index:index+cmdIndex]))
                     else: posOppy= int(reamonToWorldX(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
@@ -474,7 +474,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                     else: posOppx= int(reamonToWorldY(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
-                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP: #Blue Y
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP: #Yellow Y
                         try:
                             float(packet[index+cmdIndex])
                             #print("adding: " + packet[index+cmdIndex])
@@ -487,7 +487,7 @@ def parse(packet): #pulls (or receives) data from the arduino on the pi
                     posBally= int(reamonToWorldX(packet[index:index+cmdIndex]))
                     index = index + cmdIndex + 1
                     cmdIndex = 0
-                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP:
+                    while packet[index+cmdIndex] != COMMAND_SEP and packet[index+cmdIndex] != END_MARKER and packet[index+cmdIndex] != VALUE_SEP: #Yellow X
                         try:
                             float(packet[index+cmdIndex])
                             #print("adding: " + packet[index+cmdIndex])
@@ -662,13 +662,14 @@ def pullTest():
             print("After Pull")
     except KeyboardInterrupt:
         print("turds")
+        
 def test():
     try:
         while True:
             pull()
             printInfo()
             if imuBiasReceived:
-                vals = motorSpeed(goal2Speed((180,250,0),10))
+                vals = motorSpeed(goal2Speed((180,250,posRobt),1))
                 push(vals)
                 #print(vals)
     except KeyboardInterrupt:
