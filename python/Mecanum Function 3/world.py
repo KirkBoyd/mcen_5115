@@ -43,7 +43,7 @@ class worldClass():
         rtheta = np.arctan2(roboty,robotx)
         return robotx, roboty, rtheta
 
-    def reamon2world(reamonx,reamony): #Function to convert camera coordinates to world coordinates (Complete)
+    def reamon2world(self,reamonx,reamony): #Function to convert camera coordinates to world coordinates (Complete)
         worldx = 500 - reamony
         worldy = 375 - reamonx
         return worldx,worldy
@@ -89,12 +89,14 @@ class worldClass():
                 if serialByte == END_MARKER:
                     try:
                         angle = (float(inPacket[1:index])*2)*(np.pi/180)
+                        
                     except ValueError:
                         return
                     if not self.robot.imuBiasRecieved:
                         self.robot.imuBias = angle
                         self.robot.imuBiasRecieved = True
                     self.robot.theta = angle - self.robot.imuBias
+                    return
         
     def parseRadio(self,inPacket):
         START_MARKER = '<'  #marks the beginning of a data packet
@@ -105,7 +107,7 @@ class worldClass():
         radioDataIndex = 0
         valueString = ""
         lenInPacket = len(inPacket)
-        while index < lenInPacket: #Loops through incoming packet
+        while index < lenInPacket-1: #Loops through incoming packet
             serialByte = inPacket[index] #Grabs a character
             if self.isWhiteSpace(serialByte): # Cancel everything if their is a bad character
                 return
@@ -120,27 +122,29 @@ class worldClass():
                     try:
                         float(serialByte)
                         valueString = valueString + serialByte
+                        index +=1
                     except ValueError:
                         print("Error Converting: "  + serialByte + " Character To Float in parseRadio")
                         return
                 elif serialByte == VALUE_SEP:
                     try:
-                        value = float(valueString)
+                        value = int(valueString)
                         self.radioData[radioDataIndex] = value
+                        index += 1
                         radioDataIndex += 1
                     except ValueError:
                         print("Error Converting Character To Float in parseRadio")
                         return
                 elif serialByte == END_MARKER:
                     try:
-                        value = float(valueString)
+                        value = int(valueString)
                         self.radioData[radioDataIndex] = value
-                        radioDataIndex += 1
                         self.setBallLocations()
                         return
                     except ValueError:
                         print("Error Converting Character To Float in parseRadio")
                         return
+            else:return #Didnt hit anything
 
     def setBallLocations(self):
         #Radio send data in the order (Green,Blue,Yellow)

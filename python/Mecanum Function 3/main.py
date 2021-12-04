@@ -39,6 +39,28 @@ serRadio.reset_output_buffer()
 serRadio.reset_input_buffer()
 connected = True
 
+#Serial Communication functions
+def pull(world):
+    if (serMotors.in_waiting > 0): 
+        try:
+            #print("trying to read IMU packet")
+            inPacket = serMotors.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
+            #print(inPacket)
+            world.parseImu(inPacket)
+            #print("The f word")
+        except UnicodeDecodeError:
+            print("Invalid Packet")
+            return world
+    if (serRadio.in_waiting > 0):
+        try:
+            #print("trying to read mmmmmmmRadio packet")
+            inPacket = serRadio.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
+            world.parseRadio(inPacket)
+            #sprint(inPacket)
+        except UnicodeDecodeError:
+            #print("Invalid Packet")
+            return world
+    return world
 
 def playSoccer():
     pass
@@ -46,10 +68,12 @@ def playSoccer():
 def testDebug():
     try:
         debugWorld = world.worldClass()
+        i = 1
         while True:
-            debugWorld = communication.pull(debugWorld,serMotors,serRadio)
-            #debugging.printRadio(debugWorld)
-            print("loop")
+            debugWorld = pull(debugWorld)
+            debugging.printRadio(debugWorld)
+            #print("loop", i)
+            #i += 1
     except KeyboardInterrupt:
         print("turds")
         serMotors.write(b"<STP|>")
