@@ -26,7 +26,7 @@ ledIMU = LED(25)
 ledRAD = LED(13)
 
 #Serial Communication Initialization and resetting
-serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.5,timeout=.5) #IMU and Motors
+serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.05,timeout=.5) #IMU and Motors
 serRadio = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
@@ -45,7 +45,7 @@ def pull(world):
         try:
             #print("trying to read IMU packet")
             inPacket = serMotors.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
-            #print(inPacket)
+            print(inPacket)
             world.parseImu(inPacket)
             #print("The f word")
         except UnicodeDecodeError:
@@ -62,6 +62,30 @@ def pull(world):
             return world
     return world
 
+def push(world): #pushes data TO the arduino from the pi (Complete)
+    robot = world.robot
+    speeds = ""
+    directions = ""
+    if serMotors.out_waiting ==0:
+        for i in range(4):
+            speeds = speeds + str(int(robot.speeds[i]))
+            directions = directions + str(int(robot.directions[i]))
+            if i < 3:
+                speeds = speeds + "-"
+                directions = directions + "-"
+                
+        packetToSend = "<MOT|" + speeds + "-" + directions + ">\n"
+
+        try:
+            serMotors.write(packetToSend.encode('utf-8'))
+            #print('Sent:' + packetToSend)
+        except serial.serialutil.SerialTimeoutException:
+            serMotors.reset_output_buffer
+            serMotors.reset_output_buffer
+            print("Push Serial Timeout")
+            return
+    else: serMotors.reset_output_buffer
+    
 def playSoccer():
     pass
 
@@ -71,7 +95,10 @@ def testDebug():
         i = 1
         while True:
             debugWorld = pull(debugWorld)
-            debugging.printRadio(debugWorld)
+            debugWorld = kinematics.updateGoalSpeeds(debugWorld)
+            debugWorld = kinematics.updateMotorSpeeds(debugWorld)
+            #debugging.printRobotCoords(debugWorld)
+            push(debugWorld)
             #print("loop", i)
             #i += 1
     except KeyboardInterrupt:

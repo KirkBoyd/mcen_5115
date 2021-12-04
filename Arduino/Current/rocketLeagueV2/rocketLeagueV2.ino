@@ -60,13 +60,13 @@ void setup(){
   }
   //bno.onReceive(ReceiveEvent);
 }
-
+int loopCounter = 1;
 void loop(){ 
   if(Serial.available() > 0){
     String data = Serial.readStringUntil('\n');
     subdivideStr(data);
     for(int i = 0; i<4; i++){
-      moveMotor(i,motVals[i],motVals[i+4],motVals[i+8]);
+      moveMotor(i,motVals[i],motVals[i+4]);
     }
   }
     bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
@@ -78,8 +78,11 @@ void loop(){
   IMUstr = String(theta/2); //Divide by two to prevent bit failure 12/2
 
 //  Serial.println(IMUstr);
+  loopCounter = loopCounter + 1;
       sendPacket = "<" + IMUstr + ">";
+  if (loopCounter%10 == 0){
       Serial.println(sendPacket);
+  }
 //  if(Serial.availableForWrite() == 0){
 ////      Serial.printl/n(IMUstr);
 //      sendPacket = "<IMU|" + IMUstr + ">";

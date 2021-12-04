@@ -11,13 +11,35 @@ class opponentClass:
 
 class robotClass:
     def __init__(self,color = "green"):
+        #Robot Parameters
+        self.r  = 97/2
+        self.lx = 125
+        self.ly = 90
+        
+        #Positional Data
         self.x = 0
         self.y = 0
         self.theta = 0
+        
+        #Goal Positions
+        self.goalX = 0
+        self.goalY = 0
+        self.goalTheta = 0
+        
+        #Goal Velocities
+        self.goalVelocityX = 0
+        self.goalVelocityY = 0
+        self.goalVelocityTheta = 0
+        
+        #Motor speeds and directions
         self.speeds = np.array([0,0,0,0])
         self.directions = np.array([0,0,0,0])
+        
+        #Imu Bias
         self.imuBias = 0
         self.imuBiasRecieved = False
+        
+        #Game Variables
         self.color = color
 
 class ballClass:
@@ -89,12 +111,13 @@ class worldClass():
                 if serialByte == END_MARKER:
                     try:
                         angle = (float(inPacket[1:index])*2)*(np.pi/180)
-                        
                     except ValueError:
                         return
                     if not self.robot.imuBiasRecieved:
                         self.robot.imuBias = angle
                         self.robot.imuBiasRecieved = True
+                    if angle > np.pi:
+                        angle = angle - 2*np.pi 
                     self.robot.theta = angle - self.robot.imuBias
                     return
         

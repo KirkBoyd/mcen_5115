@@ -37,7 +37,8 @@ def push(robot,motorSerial): #pushes data TO the arduino from the pi (Complete)
         packetToSend = "<MOT|" + speeds + "-" + directions + ">\n"
 
         try:
-            motorSerial.write(packetToSend.encode('utf-8'))
+            x = 0
+            #motorSerial.write(packetToSend.encode('utf-8'))
             #print('Sent:' + packetToSend)
         except serial.serialutil.SerialTimeoutException:
             motorSerial.reset_output_buffer

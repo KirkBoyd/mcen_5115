@@ -1,7 +1,16 @@
 //order:
 //fL fR bL bR
-void moveMotor(int motorNum, float speedRatio, bool ina1, bool ina2){ // motorNum is which motor; dir is fwd or back; speed ratio is a number between 0 and 1 where 0 is stopped and 1 is full speed
-  float percentage = .5;
+void moveMotor(int motorNum, float speedRatio, bool dir){ // motorNum is which motor; dir is fwd or back; speed ratio is a number between 0 and 1 where 0 is stopped and 1 is full speed
+  float percentage = .15;
+  bool ina1;
+  bool ina2;
+  if (dir){
+    ina1 = true;
+    ina2 = false;
+  }else{
+    ina1 = false;
+    ina2 = true;
+  }
   if(motorNum == 0){
     digitalWrite(aIn1_FL, ina1);
     digitalWrite(aIn2_FL, ina2);
