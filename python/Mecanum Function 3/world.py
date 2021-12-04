@@ -130,6 +130,7 @@ class worldClass():
                     try:
                         value = int(valueString)
                         self.radioData[radioDataIndex] = value
+                        valueString = ""
                         index += 1
                         radioDataIndex += 1
                     except ValueError:
