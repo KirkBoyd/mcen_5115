@@ -1,5 +1,9 @@
 /* Got from roboticsbackend.com/raspberry-pi-arduino-serial-communication/
- 
+.//quick paste motor commands:
+<MOT|254-254-254-254-1-1-1-1>
+<MOT|254-254-254-254-1-1-1-1>
+<MOT|254-254-254-254-1-1-1-1>
+<MOT|254-254-254-254-1-1-1-1>
  */
 // Retyped by Kirk Boyd
 // Last modified Nov 16, 2021
