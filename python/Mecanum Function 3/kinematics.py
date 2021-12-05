@@ -22,8 +22,8 @@ def updateGoalSpeeds(world): #(Inprogress)
     goalVelocityY = deltaY
     goalVelocityTheta = deltaTheta
     
-    world.robot.goalVelocityX = 0
-    world.robot.goalVelocityY = 0
+    world.robot.goalVelocityX = goalVelocityX
+    world.robot.goalVelocityY = goalVelocityY
     world.robot.goalVelocityTheta =goalVelocityTheta
     return world
 

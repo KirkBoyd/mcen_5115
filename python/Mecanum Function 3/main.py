@@ -26,7 +26,7 @@ ledIMU = LED(25)
 ledRAD = LED(13)
 
 #Serial Communication Initialization and resetting
-serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.05,timeout=.5) #IMU and Motors
+serMotors = serial.Serial('/dev/ttyACM2',9600,write_timeout=.05,timeout=.5) #IMU and Motors
 serRadio = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
@@ -45,7 +45,7 @@ def pull(world):
         try:
             #print("trying to read IMU packet")
             inPacket = serMotors.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
-            print(inPacket)
+            #print(inPacket)
             world.parseImu(inPacket)
             #print("The f word")
         except UnicodeDecodeError:
@@ -97,7 +97,7 @@ def testDebug():
             debugWorld = pull(debugWorld)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
-            #debugging.printMotorSpeeds(debugWorld)
+            #debugging.printRobotCoords(debugWorld)
             push(debugWorld)
             #print("loop", i)
             #i += 1

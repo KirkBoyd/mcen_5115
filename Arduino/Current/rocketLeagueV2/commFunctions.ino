@@ -126,3 +126,33 @@ void subdivideStr(String packet){
      
   } //End For Loop
 } 
+
+void sendIMU(int IMUdata){
+  int numPins = 9;
+  int pins[] = {26, 27, 28, 29, 30, 31, 32, 33, 34};
+  char bytes[9];
+  String binary;
+  char serByte;
+              digitalWrite(26, HIGH);
+
+  binary = String(IMUdata , BIN);
+  binary.toCharArray(bytes,10);
+  
+  for (int i = 0; i <numPins; i++)
+    {
+      serByte = bytes[i];
+      if(serByte == '1')
+      {
+              digitalWrite(pins[i], HIGH);
+                  Serial.print(1);
+              
+        
+      }
+      else if(serByte =='0')
+      {
+             digitalWrite(pins[i], LOW);
+                  Serial.print(0);
+      }
+    } 
+                  Serial.println();
+}

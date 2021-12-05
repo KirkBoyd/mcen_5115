@@ -54,6 +54,16 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 #define pwm_BR 11 //13 //9 //13   //speed for back right motor //SHOULD BE GREEN //VERIFIED
 
 void setup(){
+//  /* Pin Mode IMU Data */
+//    pinMode(26,OUTPUT);
+//    pinMode(27,OUTPUT);
+//    pinMode(28,OUTPUT);
+//    pinMode(29,OUTPUT);
+//    pinMode(30,OUTPUT);
+//    pinMode(31,OUTPUT);
+//    pinMode(32,OUTPUT);
+//    pinMode(33,OUTPUT);
+//    pinMode(34,OUTPUT);
   /* Initialise the sensor */
   Serial.begin(9600);
   delay(1000);
@@ -78,6 +88,7 @@ void loop(){
   magX = magEvent.magnetic.x;
   magY = magEvent.magnetic.y;
   int theta = orientationData.orientation.x;
+  //sendIMU(theta);
   int yaw = atan2(magY, magX) * 180/3.14159+180;
   IMUstr = String(theta/2); //Divide by two to prevent bit failure 12/2
 
@@ -86,6 +97,7 @@ void loop(){
       sendPacket = "<" + IMUstr + ">";
   if (loopCounter%10 == 0){
       Serial.println(sendPacket);
+      resetMotorDrivers();
   }
 //  if(Serial.availableForWrite() == 0){
 ////      Serial.printl/n(IMUstr);

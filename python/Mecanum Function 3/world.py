@@ -22,8 +22,8 @@ class robotClass:
         self.theta = 0
         
         #Goal Positions
-        self.goalX = 0
-        self.goalY = 0
+        self.goalX = 310
+        self.goalY = 128
         self.goalTheta = 0
         
         #Goal Velocities
