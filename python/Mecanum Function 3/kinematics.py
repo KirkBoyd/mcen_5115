@@ -15,15 +15,15 @@ def updateGoalSpeeds(world): #(Inprogress)
     goalTheta = world.robot.goalTheta
     
     deltaX = goalX - currentX
-    deltay = goalY - currentY
+    deltaY = goalY - currentY
     deltaTheta = goalTheta-currentTheta
     
-    goalVelocityX = 0
-    goalVelocityY = 0
+    goalVelocityX = deltaX
+    goalVelocityY = deltaY
     goalVelocityTheta = deltaTheta
     
-    world.robot.goalVelocityX =goalVelocityX
-    world.robot.goalVelocityY =goalVelocityY
+    world.robot.goalVelocityX = 0
+    world.robot.goalVelocityY = 0
     world.robot.goalVelocityTheta =goalVelocityTheta
     return world
 

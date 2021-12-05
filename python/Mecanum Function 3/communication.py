@@ -6,7 +6,7 @@ def pull(world):
         try:
             print("trying to read IMU packet")
             inPacket = motorSerial.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
-            print(inPacket)
+            #print(inPacket)
             world.parseImu(inPacket)
             print("The f word")
         except UnicodeDecodeError:

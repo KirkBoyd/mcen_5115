@@ -74,11 +74,11 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
                 speeds = speeds + "-"
                 directions = directions + "-"
                 
-        packetToSend = "<MOT|" + speeds + "-" + directions + ">\n"
+        packetToSend = "<MOT|" + speeds + "-" + directions + "->\n"
 
         try:
             serMotors.write(packetToSend.encode('utf-8'))
-            #print('Sent:' + packetToSend)
+            print('Sent:' + packetToSend)
         except serial.serialutil.SerialTimeoutException:
             serMotors.reset_output_buffer
             serMotors.reset_output_buffer
@@ -97,7 +97,7 @@ def testDebug():
             debugWorld = pull(debugWorld)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
-            #debugging.printRobotCoords(debugWorld)
+            #debugging.printMotorSpeeds(debugWorld)
             push(debugWorld)
             #print("loop", i)
             #i += 1
