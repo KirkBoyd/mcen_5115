@@ -133,26 +133,30 @@ void sendIMU(int IMUdata){
   char bytes[9];
   String binary;
   char serByte;
-              digitalWrite(26, HIGH);
+              //digitalWrite(26, HIGH);
 
   binary = String(IMUdata , BIN);
   binary.toCharArray(bytes,10);
   
-  for (int i = 0; i <numPins; i++)
-    {
+  for (int i = 0; i <numPins; i++){
+    Serial.print("Digital Pin: ");
+    Serial.print(i);
+    Serial.print(" is: ");
+    Serial.print(pins[i]);
+    Serial.print(" with value: ");
       serByte = bytes[i];
       if(serByte == '1')
       {
               digitalWrite(pins[i], HIGH);
-                  Serial.print(1);
+              Serial.println(1);
               
         
       }
       else if(serByte =='0')
       {
              digitalWrite(pins[i], LOW);
-                  Serial.print(0);
+                  Serial.println(0);
       }
+      else{Serial.println();}
     } 
-                  Serial.println();
 }
