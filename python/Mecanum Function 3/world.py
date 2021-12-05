@@ -43,16 +43,16 @@ class robotClass:
         self.color = color
 
 class ballClass:
-    def __init(self,color = "yellow"):
+    def __init__(self,color = "yellow"):
         self.x = 0
         self.y = 0
         self.color = color
 
 class worldClass():
-    def __init__(self,team,posTargetx,posTargety,posProtectx,posProtecty):
-        self.opponent = opponentClass()
+    def __init__(self,team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
+        self.opponent = opponentClass(opponentColor)
         self.robot = robotClass(team)
-        self.ball = ballClass()
+        self.ball = ballClass('yellow')
         self.radioData = np.zeros(6)
         
         #Target goal location
@@ -135,9 +135,11 @@ class worldClass():
                     if not self.robot.imuBiasRecieved:
                         self.robot.imuBias = angle
                         self.robot.imuBiasRecieved = True
+                    angle = angle - self.robot.imuBias
                     if angle > np.pi:
-                        angle = angle - 2*np.pi 
-                    self.robot.theta = angle - self.robot.imuBias
+                        angle = angle - 2*np.pi
+                        
+                    self.robot.theta = angle
                     return
         
     def parseRadio(self,inPacket):
@@ -192,21 +194,20 @@ class worldClass():
     def setBallLocations(self):
         #Radio send data in the order (Green,Blue,Yellow)
         colorList = ["green","blue","yellow"]
-        colorIndex = 0
         for index in range(3):
-            if self.robot.color == colorList[colorIndex]:
+            #print("coord Color:" + colorList[index] + " Robot Color: " + self.robot.color)
+            if self.robot.color == colorList[index]:
                 worldPositions = self.reamon2world(self.radioData[index*2],self.radioData[index*2+1])
                 self.robot.x = worldPositions[0]
                 self.robot.y = worldPositions[1]
-                return
-            if self.opponent.color == colorList[colorIndex]:
+                continue
+            if self.opponent.color == colorList[index]:
                 worldPositions = self.reamon2world(self.radioData[index*2],self.radioData[index*2+1])
                 self.opponent.x = worldPositions[0]
                 self.opponent.y = worldPositions[1]
-                return
-            if self.ball.color == colorList[colorIndex]:
+                continue
+            if self.ball.color == colorList[index]:
                 worldPositions = self.reamon2world(self.radioData[index*2],self.radioData[index*2+1])
                 self.ball.x = worldPositions[0]
                 self.ball.y = worldPositions[1]
-                return
-            colorIndex += 1
+                continue

@@ -91,13 +91,13 @@ void loop(){
   //sendIMU(theta);
   int yaw = atan2(magY, magX) * 180/3.14159+180;
   IMUstr = String(theta/2); //Divide by two to prevent bit failure 12/2
-  sendIMU(theta);
+  //sendIMU(theta);
 //  Serial.println(IMUstr);
   loopCounter = loopCounter + 1;
       sendPacket = "<" + IMUstr + ">";
   if (loopCounter%10 == 0){
       Serial.println(sendPacket);
-      resetMotorDrivers();
+  resetMotorDrivers();
   }
 //  if(Serial.availableForWrite() == 0){
 ////      Serial.printl/n(IMUstr);

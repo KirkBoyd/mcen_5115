@@ -3,7 +3,7 @@
 //<MOT|255-255-255-255-1-1-1-1->
 //<MOT|255-255-255-255-0-0-0-0->
 void moveMotor(int motorNum, float speedRatio, bool dir){ // motorNum is which motor; dir is fwd or back; speed ratio is a number between 0 and 1 where 0 is stopped and 1 is full speed
-  float percentage = .35;
+  float percentage = .5;
   bool ina1;
   bool ina2;
   if (dir){

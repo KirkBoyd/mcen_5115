@@ -5,9 +5,13 @@ def updateGoalSpeeds(world): #(Inprogress)
     currentY = world.robot.y
     currentTheta = world.robot.theta
     
-    goalX = world.robot.goalX
-    goalY = world.robot.goalY
+    worldGoalX = world.robot.goalX
+    worldGoalY = world.robot.goalY
     goalTheta = world.robot.goalTheta
+    
+    robotCoords = world.world2robot(worldGoalX,worldGoalY)
+    goalX = robotCoords[0]
+    goalY = robotCoords[1]
     
     deltaX = goalX - currentX
     deltaY = goalY - currentY
@@ -42,7 +46,11 @@ def updateMotorSpeeds(world):
     absoluteOmegas = abs(omegas)
     maxOmega = max(omegas)
     
-    normalizedOmegas = np.interp(absoluteOmegas,[-maxOmega, maxOmega],[-254,254])
+    if maxOmega > 0:
+        normalizedOmegas = np.interp(absoluteOmegas,[-maxOmega, maxOmega],[-254,254])
+    else:
+        normalizedOmegas = absoluteOmegas*0
+    
     world.robot.speeds = normalizedOmegas
     world.robot.directions = directions
     return world

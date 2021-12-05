@@ -27,7 +27,7 @@ ledIMU = LED(25)
 ledRAD = LED(13)
 
 #Serial Communication Initialization and resetting
-serMotors = serial.Serial('/dev/ttyACM2',9600,write_timeout=.05,timeout=.5) #IMU and Motors
+serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.05,timeout=.5) #IMU and Motors
 serRadio = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
@@ -87,7 +87,7 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
             return
     else: serMotors.reset_output_buffer
     
-def playSoccer(team,posTargetx,posTargety,posProtectx,posProtecty):
+def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
     soccerWorld = world.worldClass(team,posTargetx,posTargety,posProtectx,posProtecty)
     soccerWorld = navigation.updateGoalPositions(soccerWorld,300,50,0)
     
@@ -115,19 +115,18 @@ def playSoccer(team,posTargetx,posTargety,posProtectx,posProtecty):
         stop = "<STOP>"
         serMotors.write(stop.encode('utf-8'))
 
-def testDebug(team,posTargetx,posTargety,posProtectx,posProtecty):
+def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
     try:
-        debugWorld = world.worldClass(team,posTargetx,posTargety,posProtectx,posProtecty)
-        debugWorld = navigation.updateGoalPositions(debugWorld,300,50,0)
+        debugWorld = world.worldClass(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty)
         i = 1
         while True:
             debugWorld = pull(debugWorld)
+            debugWorld = navigation.updateGoalPositions(debugWorld,310,125,0)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
             debugging.printRobotCoords(debugWorld)
+            debugging.printGoalSpeeds(debugWorld)
             push(debugWorld)
-            #print("loop", i)
-            #i += 1
     except KeyboardInterrupt:
         print("turds")
         serMotors.write(b"<STP|>")
@@ -141,6 +140,7 @@ if __name__ == '__main__': #Main Loop
     while not button.value:
         if buttonGRN.is_pressed:
             team = 'green'
+            opponentColor = 'blue'
             posTargetx = 192
             posTargety = 499
             posProtectx = 183 #Our goal
@@ -149,6 +149,7 @@ if __name__ == '__main__': #Main Loop
             ledBLU.off()
         elif buttonBLU.is_pressed:
             team = 'blue'
+            opponentColor = 'green'
             posTargetx = 183
             posTargety = -26
             posProtectx = 192 #Our goal
@@ -156,4 +157,4 @@ if __name__ == '__main__': #Main Loop
             ledBLU.on()
             ledGRN.off()
     print("Started")
-    testDebug(team,posTargetx,posTargety,posProtectx,posProtecty)
+    testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty)
