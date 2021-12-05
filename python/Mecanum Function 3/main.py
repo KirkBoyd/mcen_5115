@@ -12,6 +12,7 @@ import world
 import kinematics
 import debugging
 import communication
+import navigation
 
 # GPIO Variables
 team = 'green'
@@ -78,7 +79,7 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
 
         try:
             serMotors.write(packetToSend.encode('utf-8'))
-            print('Sent:' + packetToSend)
+            #print('Sent:' + packetToSend)
         except serial.serialutil.SerialTimeoutException:
             serMotors.reset_output_buffer
             serMotors.reset_output_buffer
@@ -92,12 +93,13 @@ def playSoccer():
 def testDebug():
     try:
         debugWorld = world.worldClass()
+        debugWorld = navigation.updateGoalPositions(debugWorld,300,50,0)
         i = 1
         while True:
             debugWorld = pull(debugWorld)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
-            #debugging.printRobotCoords(debugWorld)
+            debugging.printRobotCoords(debugWorld)
             push(debugWorld)
             #print("loop", i)
             #i += 1
