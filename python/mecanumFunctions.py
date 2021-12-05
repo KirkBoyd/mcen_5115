@@ -557,47 +557,6 @@ def reamonToWorldY(y):
     
 
 def soccer():
-    global objective
-    test = 1
-    try:
-        while test != 5:
-            pull()
-            printInfo()
-            defense = posBally < 3660/2
-            if defense: #Ball is on our half
-                if checkDefensive(): #We are in a protective position
-                    objective = scoringPosition() #Try to score
-                    if positionCheck(objective): #Robot is touching ball
-                        push(motorSpeed((goal2Speed((objective[0],objective[1],objective[2]),10))))
-                        #updatePosRob()
-                        #updateBall()
-                    else: #Robot is far from ball
-                        push(motorSpeed((goal2Speed(objective,10))))
-                        #updatePosRob()
-                else: #We are not in a protective position
-                    objective = defensePosition()
-                    push(motorSpeed((goal2Speed(objective,0))))
-                    #updatePosRob()
-            else: #Ball is on their half
-                objective = scoringPosition()
-                if positionCheck(objective): #Robot is touching ball
-                    push(motorSpeed((goal2Speed((objective[0],objective[1],objective[2]),10))))
-                    #updatePosRob()
-                    #updateBall()
-                else: #Robot is far from ball
-                    push(motorSpeed((goal2Speed(objective,0))))
-                    #updatePosRob()
-            # updateMap()
-            # #test = test + 1
-            # if cv.waitKey(20) & 0xFF==ord('d'):
-            #    stop = "<STOP>"
-            #    ser.write(stop.encode('utf-8'))
-            #    break
-            #time.sleep(100)
-    except KeyboardInterrupt:
-        print("turds")
-        stop = "<STOP>"
-        ser0.write(stop.encode('utf-8'))
         # cv.destroyAllWindows()
 ## end def main()
 

@@ -87,12 +87,37 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
             return
     else: serMotors.reset_output_buffer
     
-def playSoccer():
-    pass
-
-def testDebug():
+def playSoccer(team,posTargetx,posTargety,posProtectx,posProtecty):
+    soccerWorld = world.worldClass(team,posTargetx,posTargety,posProtectx,posProtecty)
+    soccerWorld = navigation.updateGoalPositions(soccerWorld,300,50,0)
+    
     try:
-        debugWorld = world.worldClass()
+        while True:
+            soccerWorld = pull(soccerWorld)
+            if navigation.defense(soccerWorld): #Ball is on our half
+                if navigation.checkDefensive(soccerWorld): #We are in a protective position
+                    if  navigation.scoringCheck(soccerWorld): #Robot is touching ball
+                        navigation.updateGoalPositions(soccerWorld,soccerWorld.posTargetX,soccerWorld.posTargetY,soccerWorld.robot.theta)
+                    else: #Robot is far from ball
+                        soccerWorld = navigation.scoringPosition(soccerWorld)
+                        soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.posScoringX,soccerWorld.posScoringY,soccerWorld.posScoringTheta)
+                else: #We are not in a protective position
+                        navigation.defensePosition(soccerWorld)
+            else: #Ball is on their half
+                if  navigation.scoringCheck(soccerWorld): #Robot is touching ball
+                        navigation.updateGoalPositions(soccerWorld,soccerWorld.posTargetX,soccerWorld.posTargetY,soccerWorld.robot.theta)
+                else: #Robot is far from ball
+                    soccerWorld = navigation.scoringPosition(soccerWorld)
+                    soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.posScoringX,soccerWorld.posScoringY,soccerWorld.posScoringTheta)  
+            push(soccerWorld)
+    except KeyboardInterrupt:
+        print("turds")
+        stop = "<STOP>"
+        serMotors.write(stop.encode('utf-8'))
+
+def testDebug(team,posTargetx,posTargety,posProtectx,posProtecty):
+    try:
+        debugWorld = world.worldClass(team,posTargetx,posTargety,posProtectx,posProtecty)
         debugWorld = navigation.updateGoalPositions(debugWorld,300,50,0)
         i = 1
         while True:
@@ -131,4 +156,4 @@ if __name__ == '__main__': #Main Loop
             ledBLU.on()
             ledGRN.off()
     print("Started")
-    testDebug()
+    testDebug(team,posTargetx,posTargety,posProtectx,posProtecty)

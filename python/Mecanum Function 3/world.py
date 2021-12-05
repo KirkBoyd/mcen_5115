@@ -49,11 +49,30 @@ class ballClass:
         self.color = color
 
 class worldClass():
-    def __init__(self):
+    def __init__(self,team,posTargetx,posTargety,posProtectx,posProtecty):
         self.opponent = opponentClass()
-        self.robot = robotClass()
+        self.robot = robotClass(team)
         self.ball = ballClass()
         self.radioData = np.zeros(6)
+        
+        #Target goal location
+        self.posTargetX = posTargetx
+        self.posTargetY = posTargety
+
+        #Our goal location
+        self.posProtectX = posProtectx
+        self.posProtectY = posProtecty
+
+        #Scoring position location
+        self.posScoringX = 180
+        self.posScoringY = 250
+        if team == 'green':
+            self.posScoringTheta = 0
+        if team == 'blue':
+            self.posScoringTheta = 180
+        else:
+            print("Unable to set team")
+        
         print("----------------")
         print("Game Initialized")
         print("----------------")
