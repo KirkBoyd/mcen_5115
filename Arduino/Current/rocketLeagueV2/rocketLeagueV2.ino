@@ -55,7 +55,9 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 #define aIn1_BR 40 //17  //mega or teensy pin //SHOULD BE GREEN //VERIFIED
 #define aIn2_BR 41 //22  //mega or teensy pin //SHOULD BE GREEN //VERIFIED
 #define pwm_BR 11 //13 //9 //13   //speed for back right motor //SHOULD BE GREEN //VERIFIED
-
+int analogPins[4] = {10, 13, 12, 11};
+int inA1Pins[4] = {39, 17, 16, 40};
+int inA2Pins[4] = {38, 22, 15, 41};
 void setup(){
 //  /* Pin Mode IMU Data */
     pinMode(26,OUTPUT);
@@ -102,23 +104,54 @@ void setup(){
 }
 int loopCounter = 1;
 int motStep[4];
-const int numSteps = 1;
+const int numSteps = 20;
 int motSteps[numSteps];
+int scaledSpeeds[4] = {255};
+int oldScaledSpeeds[4] = {255};
+float percentage = 1;
 void loop(){ 
   if(Serial.available() > 0){
     String data = Serial.readStringUntil('\n');
     subdivideStr(data);
-  resetMotorDrivers();
     for(int i = 0; i<4; i++){
-      motSteps[i] = (motVals[i]-motValsOld[i])/numSteps;
-      motValsOld[i] = motVals[i];
-    }
-    for(int j = 1; j<numSteps+1; j++){
-      for(int i = 0; i<4; i++){
-        moveMotor(i,motValsOld[i]+j*motStep[i],motVals[i+4]);
+      if (motVals[i+4] ==1){ //Going Forawrd
+        scaledSpeeds[i] = 250+motVals[i];
+      }
+      else{
+        scaledSpeeds[i] = 260-motVals[i];
       }
     }
+    for(int i = 0; i<4; i++){ // set ramp vals
+      motSteps[i] = (scaledSpeeds[i]-oldScaledSpeeds[i])/numSteps;
+      Serial.print(motSteps[i]);
+      //motSteps[i] = (motVals[i]-motValsOld[i])/numSteps;
+    }
+    for(int j = 1; j<numSteps+1; j++){ // Ramp Motors
+      for(int i = 0; i<4; i++){  //Set motors to intended values again
+        //moveMotor(i,motVals[i],motVals[i+4]);
+        int goalSpeed = oldScaledSpeeds[i] + j*motSteps[i];
+        if (goalSpeed > 255){
+          goalSpeed -= 255;
+          //Serial.println(goalSpeed);
+          digitalWrite(inA1Pins[i],true);
+          digitalWrite(inA2Pins[i],false);
+          analogWrite(analogPins[i],goalSpeed*percentage);
+        }else{
+          goalSpeed = 255 - goalSpeed;
+          //Serial.println(goalSpeed);
+          digitalWrite(inA1Pins[i],false);
+          digitalWrite(inA2Pins[i],true);
+          analogWrite(analogPins[i],goalSpeed*percentage);
+        }
+        delay(20);
+      }
+    }
+    for(int i =0; i<4; i++){
+        motValsOld[i] = motVals[i];
+        oldScaledSpeeds[i] = scaledSpeeds[i];
+    }
   }
+ 
   bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
   theta = int(orientationData.orientation.x);
   if(theta != oldtheta){
