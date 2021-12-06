@@ -81,15 +81,15 @@ class worldClass():
         dx = wx - self.robot.x
         dy = wy - self.robot.y
         
-        robotx = dx*np.cos(self.robot.theta) - dy*np.sin(self.robot.theta)
-        roboty = dx*np.sin(self.robot.theta) + dy*np.cos(self.robot.theta)
+        robotx = dy*np.cos(self.robot.theta) - dx*np.sin(self.robot.theta)
+        roboty = -dy*np.sin(self.robot.theta) + dx*np.cos(self.robot.theta)
 
         rtheta = np.arctan2(roboty,robotx)
         return robotx, roboty, rtheta
 
     def reamon2world(self,reamonx,reamony): #Function to convert camera coordinates to world coordinates (Complete)
-        worldx = 500 - reamony
-        worldy = 375 - reamonx
+        worldx = 375 - reamony
+        worldy = 500 - reamonx
         return worldx,worldy
 
     def robot2world(): #Function to convert world coordinates to robot coordinates (Incomplete)

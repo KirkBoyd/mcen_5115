@@ -70,7 +70,7 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
 
         try:
             serMotors.write(packetToSend.encode('utf-8'))
-            #print('Sent:' + packetToSend)
+            print('Sent:' + packetToSend)
         except serial.serialutil.SerialTimeoutException:
             serMotors.reset_output_buffer
             serMotors.reset_output_buffer
@@ -139,15 +139,18 @@ def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
             angle = angle - debugWorld.robot.imuBias
             if angle > np.pi:
                 angle = angle - 2*np.pi
+            elif angle < -np.pi:
+                angle = angle + 2*np.pi
                 
             debugWorld.robot.theta = angle
             
             debugWorld = pull(debugWorld)
-            debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y,0)
+            debugWorld = navigation.updateGoalPositions(debugWorld,311,138,0)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
+            debugging.printRadio(debugWorld)
             debugging.printRobotCoords(debugWorld)
-            debugging.printGoalSpeeds(debugWorld)
+            #debugging.printGoalSpeeds(debugWorld)
             push(debugWorld)
     except KeyboardInterrupt:
         print("turds")

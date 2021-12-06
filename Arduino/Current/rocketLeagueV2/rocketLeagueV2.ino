@@ -102,7 +102,7 @@ void setup(){
 }
 int loopCounter = 1;
 int motStep;
-const int numSteps = 4;
+const int numSteps = 2;
 int motSteps[numSteps];
 void loop(){ 
   if(Serial.available() > 0){
@@ -111,7 +111,7 @@ void loop(){
 
  
     for(int i = 0; i<4; i++){
-      motStep = int((motVals[i] - motValsOld[i])/numSteps);
+      motStep = int((motVals[i] - motValsOld[i])/(numSteps+1));
       for(int j = 0; j<numSteps; j++){
         moveMotor(i,motValsOld[i]+j*motStep,motVals[i+4]);
       }
@@ -125,7 +125,7 @@ void loop(){
     sendIMU(theta);
   }
   oldtheta = theta;
-  if (loopCounter%10 == 0){
+  if (loopCounter%20 == 0){
       //Serial.println(sendPacket);
   resetMotorDrivers();
   }
