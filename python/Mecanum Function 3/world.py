@@ -78,8 +78,11 @@ class worldClass():
         print("----------------")
 
     def world2robot(self,wx,wy): #Function to convert world to robot coordinates (Complete)
-        robotx = self.robot.x + wx*np.cos(self.robot.theta) - wy*np.sin(self.robot.theta)
-        roboty = self.robot.y + wx*np.sin(self.robot.theta) + wy*np.cos(self.robot.theta)
+        dx = wx - self.robot.x
+        dy = wy - self.robot.y
+        
+        robotx = dx*np.cos(self.robot.theta) - dy*np.sin(self.robot.theta)
+        roboty = dx*np.sin(self.robot.theta) + dy*np.cos(self.robot.theta)
 
         rtheta = np.arctan2(roboty,robotx)
         return robotx, roboty, rtheta

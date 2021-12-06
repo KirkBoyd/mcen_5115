@@ -101,11 +101,21 @@ void setup(){
   //bno.onReceive(ReceiveEvent);
 }
 int loopCounter = 1;
+int motStep;
+const int numSteps = 4;
+int motSteps[numSteps];
 void loop(){ 
   if(Serial.available() > 0){
     String data = Serial.readStringUntil('\n');
     subdivideStr(data);
+
+ 
     for(int i = 0; i<4; i++){
+      motStep = int((motVals[i] - motValsOld[i])/numSteps);
+      for(int j = 0; j<numSteps; j++){
+        moveMotor(i,motValsOld[i]+j*motStep,motVals[i+4]);
+      }
+      motValsOld[i] = motVals[i];
       moveMotor(i,motVals[i],motVals[i+4]);
     }
   }
@@ -119,10 +129,5 @@ void loop(){
       //Serial.println(sendPacket);
   resetMotorDrivers();
   }
-//  if(Serial.availableForWrite() == 0){
-////      Serial.printl/n(IMUstr);
-//      sendPacket = "<IMU|" + IMUstr + ">";
-//      Serial.println(sendPacket);
-//  }
-  
+  loopCounter++;  
 }

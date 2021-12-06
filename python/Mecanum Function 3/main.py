@@ -132,6 +132,7 @@ def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
             for i in range(9):
                 if binaryButtons[i].is_active:
                     angle = angle + 2**(8-i)
+            angle = angle /180*np.pi
             if not debugWorld.robot.imuBiasRecieved:
                 debugWorld.robot.imuBias = angle
                 debugWorld.robot.imuBiasRecieved = True
