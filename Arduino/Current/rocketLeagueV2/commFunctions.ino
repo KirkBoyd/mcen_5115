@@ -1,4 +1,3 @@
-int motValsOld[
 
 bool isWhiteSpace(char character){
     if (character == ' ')
