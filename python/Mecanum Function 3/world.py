@@ -68,7 +68,7 @@ class worldClass():
         self.posScoringY = 250
         if team == 'green':
             self.posScoringTheta = 0
-        if team == 'blue':
+        elif team == 'blue':
             self.posScoringTheta = 180
         else:
             print("Unable to set team")

@@ -14,6 +14,7 @@
 #include <utility/imumaths.h>
 
 int motVals[12] = {0}; //integer array to store motor values received over serial
+int motValsOld[12] = {0}; //stores old values to compare later
 int theta = 0;
 int oldtheta = 1;
 String IMUstr = "<IMU|0>"; //String to send IMU data
@@ -66,6 +67,29 @@ void setup(){
     pinMode(32,OUTPUT);
     pinMode(33,OUTPUT);
     pinMode(34,OUTPUT);
+
+    /*Pin Mode Motors*/
+    pinMode(mFL, OUTPUT);
+    pinMode(aIn1_FL,OUTPUT);
+    pinMode(aIn2_FL, OUTPUT);
+    pinMode(pwm_FL,OUTPUT);
+    
+    pinMode(mFR, OUTPUT);
+    pinMode(aIn1_FR,OUTPUT);
+    pinMode(aIn2_FR, OUTPUT);
+    pinMode(pwm_FR,OUTPUT);
+    
+    pinMode(mBL, OUTPUT);
+    pinMode(aIn1_BL,OUTPUT);
+    pinMode(aIn2_BL, OUTPUT);
+    pinMode(pwm_BL,OUTPUT);
+    
+    pinMode(mBR, OUTPUT);
+    pinMode(aIn1_BR,OUTPUT);
+    pinMode(aIn2_BR, OUTPUT);
+    pinMode(pwm_BR,OUTPUT);
+
+    
   /* Initialise the sensor */
   Serial.begin(9600);
   delay(1000);

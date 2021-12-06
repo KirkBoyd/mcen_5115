@@ -4,7 +4,7 @@ import time
 from numpy.core.numeric import ones
 from gpiozero import Button
 from gpiozero import LED
-import gpiozeros
+import gpiozero
 import serial
 import signal
 
@@ -42,9 +42,7 @@ serRadio.reset_input_buffer()
 connected = True
 
 #Serial Communication functions
-def pull(world):
-    world.robot.theta = communication.printBinary()
-    
+def pull(world):    
     if (serRadio.in_waiting > 0):
         try:
             #print("trying to read mmmmmmmRadio packet")
@@ -107,18 +105,48 @@ def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty)
         print("turds")
         stop = "<STOP>"
         serMotors.write(stop.encode('utf-8'))
+        
+def readIMU():
+    val = 0
+    for i in range(9):
+        if binaryButtons[i].is_active:
+            x = 1
+        else: x = 0
+        val = val + x*2**(8-i)
+        #print(str(i) + "............." + str(x))
+    return val
 
 def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
+    # NEW BINARY STUFF #
+    binaryPins = [17,27,22,13,19,26,20,21,25]
+    binaryButtons = [0,0,0,0,0,0,0,0,0]
+    binaryVals = [0,0,0,0,0,0,0,0,0]
+
+    for i in range(9): # initialize buttons as pins
+        binaryButtons[i] = gpiozero.DigitalInputDevice(binaryPins[i],pull_up = None, active_state = True)
+        
     try:
         debugWorld = world.worldClass(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty)
-        i = 1
         while True:
+            angle = 0
+            for i in range(9):
+                if binaryButtons[i].is_active:
+                    angle = angle + 2**(8-i)
+            if not debugWorld.robot.imuBiasRecieved:
+                debugWorld.robot.imuBias = angle
+                debugWorld.robot.imuBiasRecieved = True
+            angle = angle - debugWorld.robot.imuBias
+            if angle > np.pi:
+                angle = angle - 2*np.pi
+                
+            debugWorld.robot.theta = angle
+            
             debugWorld = pull(debugWorld)
-            debugWorld = navigation.updateGoalPositions(debugWorld,310,125,0)
+            debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y,0)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
             debugging.printRobotCoords(debugWorld)
-            #debugging.printGoalSpeeds(debugWorld)
+            debugging.printGoalSpeeds(debugWorld)
             push(debugWorld)
     except KeyboardInterrupt:
         print("turds")
