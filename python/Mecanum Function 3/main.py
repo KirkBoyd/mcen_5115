@@ -28,7 +28,7 @@ radCounter = 0
 
     
 #Serial Communication Initialization and resetting
-serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.05,timeout=.5) #IMU and Motors
+serMotors = serial.Serial('/dev/ttyACM2',9600,write_timeout=.05,timeout=.5) #IMU and Motors
 serRadio = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
@@ -80,6 +80,7 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
     robot = world.robot
     speeds = ""
     directions = ""
+    lastPacket = ""
     if serMotors.out_waiting ==0:
         for i in range(4):
             speeds = speeds + str(int(robot.speeds[i]))
@@ -91,10 +92,11 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
         packetToSend = "<MOT|" + speeds + "-" + directions + "->\n"
         
         try:
-            serMotors.write(packetToSend.encode('utf-8'))
+            if (packetToSend != lastPacket):
+                serMotors.write(packetToSend.encode('utf-8'))
             print('Sent:' + packetToSend)
+            lastPacket = packetToSend
         except serial.serialutil.SerialTimeoutException:
-            serMotors.reset_output_buffer
             serMotors.reset_output_buffer
             print("Push Serial Timeout")
             return
@@ -204,12 +206,12 @@ def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,b
             
             debugWorld = pull(debugWorld)
             #debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y,0)
-            debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.ball.x,debugWorld.ball.y,0)
+            debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y,0)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
             #debugging.printRadio(debugWorld)
             #debugging.printRobotCoords(debugWorld)
-            debugging.printGoalSpeeds(debugWorld)
+            #debugging.printGoalSpeeds(debugWorld)
             push(debugWorld)
     except KeyboardInterrupt:
         print("turds")
@@ -254,4 +256,5 @@ if __name__ == '__main__': #Main Loop
             ledBLU.on()
             ledGRN.off()
     print("Started")
-    playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,angle,True)
+    #playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,angle,True)
+    testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,angle,True)

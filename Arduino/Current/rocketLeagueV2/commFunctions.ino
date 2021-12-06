@@ -21,7 +21,7 @@ void subdivideStr(String packet){
   int tempNumInd = 0;
   int motValsInd = 0;
   
-  
+  Serial.println(packet);
   packet.toCharArray(bytes, len);
   char serByte; 
   for(int i=0; i<len; i++){
@@ -32,7 +32,7 @@ void subdivideStr(String packet){
       continue;
     }
     else if(serByte == '<' and receiving){
-      Serial.println("Splish Splash the Data is Trash");
+      //Serial.println("Splish Splash the Data is Trash");
       break;
     }
     if(receiving){ //Started receiving command
@@ -42,7 +42,7 @@ void subdivideStr(String packet){
           continue;  //Break from loop
         }
         else if(serByte == '>'){ 
-          Serial.println("Received end");
+          //Serial.println("Received end");
           break; 
         } //End marker has been received
         else if(cmdIndex < 3){ //cmdBuffer has not been filled
@@ -50,7 +50,7 @@ void subdivideStr(String packet){
           cmdIndex++; //Increment the command buffer
         }
         else{ //Command it too long
-          Serial.println("Command too long");
+          //Serial.println("Command too long");
           break;
         }
       }
@@ -84,7 +84,7 @@ void subdivideStr(String packet){
           break;
         }
         else{
-          Serial.println("Invalid Command");
+          //Serial.println("Invalid Command");
           break;
         }
       } // Command Received

@@ -91,4 +91,4 @@ def scoringCheck(world):
 
     distance = 100 #Maximum distance
     angle = np.pi/16 #Maximum angle
-    return abs(posRobTheta-posTheta) < angle and np.sqrt((posRobX - posX)**2 + (posRobY-posY[1])**2) < distance
+    return abs(posRobTheta-posTheta) < angle and np.sqrt((posRobX - posX)**2 + (posRobY-posY)**2) < distance
