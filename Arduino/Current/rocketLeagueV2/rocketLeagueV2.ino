@@ -101,22 +101,22 @@ void setup(){
   //bno.onReceive(ReceiveEvent);
 }
 int loopCounter = 1;
-int motStep;
+int motStep[4];
 const int numSteps = 2;
 int motSteps[numSteps];
 void loop(){ 
   if(Serial.available() > 0){
     String data = Serial.readStringUntil('\n');
     subdivideStr(data);
-
- 
+  resetMotorDrivers();
     for(int i = 0; i<4; i++){
-      motStep = int((motVals[i] - motValsOld[i])/(numSteps+1));
-      for(int j = 0; j<numSteps; j++){
-        moveMotor(i,motValsOld[i]+j*motStep,motVals[i+4]);
-      }
+      motSteps[i] = (motVals[i]-motValsOld[i])/numSteps;
       motValsOld[i] = motVals[i];
-      moveMotor(i,motVals[i],motVals[i+4]);
+    }
+    for(int j = 1; j<numSteps+1; j++){
+      for(int i = 0; i<4; i++){
+        moveMotor(i,motValsOld[i]+j*motStep[i],motVals[i+4]);
+      }
     }
   }
   bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
@@ -125,9 +125,5 @@ void loop(){
     sendIMU(theta);
   }
   oldtheta = theta;
-  if (loopCounter%20 == 0){
-      //Serial.println(sendPacket);
-  resetMotorDrivers();
-  }
   loopCounter++;  
 }

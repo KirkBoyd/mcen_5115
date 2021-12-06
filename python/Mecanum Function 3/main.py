@@ -145,12 +145,13 @@ def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
             debugWorld.robot.theta = angle
             
             debugWorld = pull(debugWorld)
-            debugWorld = navigation.updateGoalPositions(debugWorld,311,138,0)
+            #debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y,0)
+            debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.ball.x,debugWorld.ball.y,0)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
             debugging.printRadio(debugWorld)
             debugging.printRobotCoords(debugWorld)
-            #debugging.printGoalSpeeds(debugWorld)
+            debugging.printGoalSpeeds(debugWorld)
             push(debugWorld)
     except KeyboardInterrupt:
         print("turds")
