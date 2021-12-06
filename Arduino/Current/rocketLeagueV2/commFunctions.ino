@@ -36,64 +36,63 @@ void subdivideStr(String packet){
       break;
     }
     if(receiving){ //Started receiving command
-        if(!cmdReceived){
-          if(serByte == '|'){ //Command Sperator has been found
-            cmdReceived = true; //Aknowledge new command
-            continue;  //Break from loop
-          }
-          else if(serByte == '>'){ 
-            Serial.println("Received end");
-            break; 
-          } //End marker has been received
-          else if(cmdIndex < 3){ //cmdBuffer has not been filled
-            cmdBuffer = cmdBuffer + serByte; //Add the byte to the command index
-            cmdIndex++; //Increment the command buffer
-          }
-          else{ //Command it too long
-            Serial.println("Command too long");
-            break;
-          }
+      if(!cmdReceived){
+        if(serByte == '|'){ //Command Sperator has been found
+          cmdReceived = true; //Aknowledge new command
+          continue;  //Break from loop
         }
-        else{ //Command has been received
-          if(cmdBuffer == "MOT"){ //Motor command has been received
-            if(serByte == '-' or serByte == '>'){ //
-              motVals[motValsInd] = tempNum.toInt();
-              tempNum = "";
-              tempNumInd = 0;
-              motValsInd++;
-              
-            }
-            else{
-              tempNum = tempNum + serByte;
-              tempNumInd++;
-            }
-          else if(cmdBuffer == "STP"){
-            Serial.println("STP Received");
-            motVals[0] = 0;
-            motVals[1] = 0;
-            motVals[2] = 0;
-            motVals[3] = 0;
-            motVals[4] = 1;
-            motVals[5] = 1;
-            motVals[6] = 1;
-            motVals[7] = 1;
-            motVals[8] = 1;
-            motVals[9] = 1;
-            motVals[10] = 1;
-            motVals[11] = 1;
-            break;
+        else if(serByte == '>'){ 
+          Serial.println("Received end");
+          break; 
+        } //End marker has been received
+        else if(cmdIndex < 3){ //cmdBuffer has not been filled
+          cmdBuffer = cmdBuffer + serByte; //Add the byte to the command index
+          cmdIndex++; //Increment the command buffer
+        }
+        else{ //Command it too long
+          Serial.println("Command too long");
+          break;
+        }
+      }
+      else{ //Command has been received
+        if(cmdBuffer == "MOT"){ //Motor command has been received
+          if(serByte == '-' or serByte == '>'){ //
+            motVals[motValsInd] = tempNum.toInt();
+            tempNum = "";
+            tempNumInd = 0;
+            motValsInd++;
           }
           else{
-            Serial.println("Invalid Command");
-            break;
+            tempNum = tempNum + serByte;
+            tempNumInd++;
           }
-       } // Command Received
-     } //End Receiving
-     if(serByte == '>'){ //End marker has been received
-      //Serial.println("Received end marker");
-      break; 
-     }
-     
+        }
+        else if(cmdBuffer == "STP"){
+          Serial.println("STP Received");
+          motVals[0] = 0;
+          motVals[1] = 0;
+          motVals[2] = 0;
+          motVals[3] = 0;
+          motVals[4] = 1;
+          motVals[5] = 1;
+          motVals[6] = 1;
+          motVals[7] = 1;
+          motVals[8] = 1;
+          motVals[9] = 1;
+          motVals[10] = 1;
+          motVals[11] = 1;
+          break;
+        }
+        else{
+          Serial.println("Invalid Command");
+          break;
+        }
+      } // Command Received
+    } //End Receiving
+    if(serByte == '>'){ //End marker has been received
+    //Serial.println("Received end marker");
+    break; 
+    }
   } //End For Loop
 } 
 
