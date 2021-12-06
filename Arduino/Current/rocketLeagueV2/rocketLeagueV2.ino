@@ -1,6 +1,6 @@
 /* Got from roboticsbackend.com/raspberry-pi-arduino-serial-communication/
 .//quick paste motor commands:
-<MOT|254-254-254-254-1-1-1-1>
+<MOT|254-254-254-254-1-1-1-1->
 <MOT|254-254-254-254-1-1-1-1>
 <MOT|254-254-254-254-1-1-1-1>
 <MOT|254-254-254-254-1-1-1-1>
@@ -108,7 +108,9 @@ const int numSteps = 20;
 int motSteps[numSteps];
 int scaledSpeeds[4] = {255,255,255,255};
 int oldScaledSpeeds[4] = {255,255,255,255};
-float percentage = 1;
+float percentage = .5;
+//<MOT|254-254-254-254-1-1-1-1->
+//<MOT|254-254-254-254-0-0-0-0->
 void loop(){ 
   if(Serial.available() > 0){
     String data = Serial.readStringUntil('\n');
@@ -123,9 +125,10 @@ void loop(){
     }
     for(int i = 0; i<4; i++){ // set ramp vals
       motSteps[i] = (scaledSpeeds[i]-oldScaledSpeeds[i])/numSteps;
-      Serial.print(motSteps[i]);
+      //Serial.print(motSteps[i]);
       //motSteps[i] = (motVals[i]-motValsOld[i])/numSteps;
     }
+    //Serial.println();
     for(int j = 1; j<numSteps+1; j++){ // Ramp Motors
       for(int i = 0; i<4; i++){  //Set motors to intended values again
         //moveMotor(i,motVals[i],motVals[i+4]);
@@ -143,7 +146,7 @@ void loop(){
           digitalWrite(inA2Pins[i],true);
           analogWrite(analogPins[i],goalSpeed*percentage);
         }
-        delay(20);
+        delay(10);
       }
     }
     for(int i =0; i<4; i++){

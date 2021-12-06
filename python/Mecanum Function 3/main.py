@@ -87,7 +87,7 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
             if i < 3:
                 speeds = speeds + "-"
                 directions = directions + "-"
-                
+        
         packetToSend = "<MOT|" + speeds + "-" + directions + "->\n"
         
         try:
