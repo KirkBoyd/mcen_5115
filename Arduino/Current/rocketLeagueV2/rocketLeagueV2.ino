@@ -125,52 +125,55 @@ void loop(){
     }
     for(int i = 0; i<4; i++){ // set ramp vals
       motSteps[i] = (scaledSpeeds[i]-oldScaledSpeeds[i])/numSteps;
-      //Serial.println(motSteps[i]);
-      //Serial.print(motSteps[i]);
       //motSteps[i] = (motVals[i]-motValsOld[i])/numSteps;
     }
     //Serial.println();
-    for(int j = 1; j<numSteps+1; j++){ // Ramp Motors
-      for(int i = 0; i<4; i++){  //Set motors to intended values again
-        //moveMotor(i,motVals[i],motVals[i+4]);
-        int goalSpeed = oldScaledSpeeds[i] + j*motSteps[i];
-        if(i%2 ==1){
-          if (goalSpeed > 255){
-            goalSpeed -= 255;
-            if(goalSpeed <50){goalSpeed = 0;};
-            //Serial.println(goalSpeed);
-            digitalWrite(inA1Pins[i],true);
-            digitalWrite(inA2Pins[i],false);
-            analogWrite(analogPins[i],goalSpeed*percentage);
-          }else{
-            goalSpeed = 255 - goalSpeed;
-            if(goalSpeed <50){goalSpeed = 0;};
-            //Serial.println(goalSpeed);
-            digitalWrite(inA1Pins[i],false);
-            digitalWrite(inA2Pins[i],true);
-            analogWrite(analogPins[i],goalSpeed*percentage);
+    //if(millis() % 10 == 0){ // hopefully replacing the delay(10) at the bottom of this
+      for(int j = 1; j<numSteps+1; j){ // Ramp Motors
+        for(int i = 0; i<4; i++){  //Set motors to intended values again
+          //moveMotor(i,motVals[i],motVals[i+4]);
+          int goalSpeed = oldScaledSpeeds[i] + j*motSteps[i];
+          if(i%2 ==1){
+            if (goalSpeed > 255){
+              goalSpeed -= 255;
+              if(goalSpeed <50){goalSpeed = 0;};
+              //Serial.println(goalSpeed);
+              digitalWrite(inA1Pins[i],true);
+              digitalWrite(inA2Pins[i],false);
+              analogWrite(analogPins[i],goalSpeed*percentage);
+            }else{
+              goalSpeed = 255 - goalSpeed;
+              if(goalSpeed <50){goalSpeed = 0;};
+              //Serial.println(goalSpeed);
+              digitalWrite(inA1Pins[i],false);
+              digitalWrite(inA2Pins[i],true);
+              analogWrite(analogPins[i],goalSpeed*percentage);
+            }
           }
-        }
-        else{
-          if (goalSpeed > 255){
-            goalSpeed -= 255;
-            if(goalSpeed <50){goalSpeed = 0;};
-            //Serial.println(goalSpeed);
-            digitalWrite(inA1Pins[i],false);
-            digitalWrite(inA2Pins[i],true);
-            analogWrite(analogPins[i],goalSpeed*percentage);
-          }else{
-            goalSpeed = 255 - goalSpeed;
-            if(goalSpeed <50){goalSpeed = 0;};
-            //Serial.println(goalSpeed);
-            digitalWrite(inA1Pins[i],true);
-            digitalWrite(inA2Pins[i],false);
-            analogWrite(analogPins[i],goalSpeed*percentage);
+          else{
+            if (goalSpeed > 255){
+              goalSpeed -= 255;
+              if(goalSpeed <50){goalSpeed = 0;};
+              //Serial.println(goalSpeed);
+              digitalWrite(inA1Pins[i],false);
+              digitalWrite(inA2Pins[i],true);
+              analogWrite(analogPins[i],goalSpeed*percentage);
+            }else{
+              goalSpeed = 255 - goalSpeed;
+              if(goalSpeed <50){goalSpeed = 0;};
+              //Serial.println(goalSpeed);
+              digitalWrite(inA1Pins[i],true);
+              digitalWrite(inA2Pins[i],false);
+              analogWrite(analogPins[i],goalSpeed*percentage);
+            }
           }
+        if (millis()%1000 == 0){
+          j++;
         }
-        delay(10);
+        //delay(10);
+        }
       }
-    }
+    //}
     for(int i =0; i<4; i++){
         motValsOld[i] = motVals[i];
         oldScaledSpeeds[i] = scaledSpeeds[i];
