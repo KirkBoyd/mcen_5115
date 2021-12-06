@@ -28,7 +28,7 @@ radCounter = 0
 
     
 #Serial Communication Initialization and resetting
-serMotors = serial.Serial('/dev/ttyACM2',9600,write_timeout=.05,timeout=.5) #IMU and Motors
+serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.05,timeout=.5) #IMU and Motors
 serRadio = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
@@ -54,7 +54,29 @@ def pull(world):
             return world
     return world
 
+def printDirection(world):
+    speeds = world.robot.speeds
+    directions = world.robot.directions
+    omegas = np.zeros(4)
+    for i in range(4):
+        if directions[i] > 0:
+            omegas[i] = speeds[i]
+        else:
+            omegas[i] = -speeds[i]
+            
+    vx = omegas[0] + omegas[1] + omegas[2] + omegas[3]
+    vy = - omegas[0] + omegas[1] + omegas[2] - omegas[3]
+    vx *= world.robot.r/4
+    vy *= world.robot.r/4
+    wz = -omegas[0] + omegas[1] - omegas[2] + omegas[3]
+    wz *= world.robot.r/(4*(world.robot.lx + world.robot.ly))
+    rho = np.arctan2(vy, vx)*180/np.pi
+    vr = (vx**2 + vy**2)**0.5
+    print("Direction: " + str(rho) + " Speed: " + str(vr) + " Omega_z: " + str(wz))
+
+
 def push(world): #pushes data TO the arduino from the pi (Complete)
+    printDirection(world)
     robot = world.robot
     speeds = ""
     directions = ""
@@ -67,7 +89,7 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
                 directions = directions + "-"
                 
         packetToSend = "<MOT|" + speeds + "-" + directions + "->\n"
-
+        
         try:
             serMotors.write(packetToSend.encode('utf-8'))
             print('Sent:' + packetToSend)
@@ -96,11 +118,14 @@ def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,
             for i in range(9):
                 if binaryButtons[i].is_active:
                     angle = angle + 2**(8-i)
+                
             angle = angle /180*np.pi
             if not soccerWorld.robot.imuBiasRecieved:
                 soccerWorld.robot.imuBias = angle
                 soccerWorld.robot.imuBiasRecieved = True
+                
             angle = angle - soccerWorld.robot.imuBias
+                
             if angle > np.pi:
                 angle = angle - 2*np.pi
             elif angle < -np.pi:
@@ -124,10 +149,15 @@ def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,
                 else: #Robot is far from ball
                     soccerWorld = navigation.scoringPosition(soccerWorld)
                     soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.posScoringX,soccerWorld.posScoringY,soccerWorld.posScoringTheta)
+            if soccerWorld.robot.color == 'green':        
+                soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.robot.goalX,soccerWorld.robot.goalY,0)
+            else:        
+                soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.robot.goalX,soccerWorld.robot.goalY,np.pi)
             soccerWorld = kinematics.updateGoalSpeeds(soccerWorld)
             soccerWorld = kinematics.updateMotorSpeeds(soccerWorld)
             debugging.printGoalSpeeds(soccerWorld)
             debugging.printGoalPos(soccerWorld)
+            debugging.printRobotCoords(soccerWorld)
             push(soccerWorld)
     except KeyboardInterrupt:
         print("turds")
@@ -203,7 +233,7 @@ if __name__ == '__main__': #Main Loop
         if binaryButton.is_active:
             angle = angle + 2**(8-i)
         del binaryButton
-    
+    print(angle)
     while not button.value:
         if buttonGRN.is_pressed:
             team = 'green'
