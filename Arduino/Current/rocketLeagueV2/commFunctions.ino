@@ -130,33 +130,75 @@ void subdivideStr(String packet){
 void sendIMU(int IMUdata){
   int numPins = 9;
   int pins[] = {26, 27, 28, 29, 30, 31, 32, 33, 34};
+  int pinVal[9];
+  //Serial.println(IMUdata);
+  for (int i=0; i<numPins; i++){
+    if( IMUdata - pow(2,numPins-i-1) >= 0){
+      pinVal[i] = 1;
+      IMUdata =  IMUdata - pow(2,numPins-i-1);
+      digitalWrite(pins[i],HIGH);
+      //Serial.print(1);
+    }
+    else{
+      pinVal[i] = 0;
+      digitalWrite(pins[i],LOW);
+     //Serial.print(0);
+    }
+  }
+  //Serial.println();
+ }
+
+void sendIMU2(int IMUdata){
+  int numPins = 9;
+  int pins[] = {26, 27, 28, 29, 30, 31, 32, 33, 34};
   char bytes[9];
   String binary;
   char serByte;
               //digitalWrite(26, HIGH);
 
   binary = String(IMUdata , BIN);
+  Serial.println(IMUdata);
+  //Serial.println(binary);
   binary.toCharArray(bytes,10);
-  
-  for (int i = 0; i <numPins; i++){
-    Serial.print("Digital Pin: ");
-    Serial.print(i);
-    Serial.print(" is: ");
-    Serial.print(pins[i]);
-    Serial.print(" with value: ");
+  for (int i=0; i<numPins; i++){
+    digitalWrite(pins[i],LOW);
+  }
+//  Serial.print("Lenght of byt[]e: ");
+//  Serial.println(sizeOf(bytes));
+  for (int i = 0; i < 9 - sizeof(binary); i++){
+//    Serial.print("Digital Pin: ");
+//    Serial.print(i);
+//    Serial.print(" is: ");
+//    Serial.print(pins[i]);
+//    Serial.print(" with value: ");
+      serByte = bytes[i];
+      if(serByte == '1')
+      {
+              digitalWrite(pins[i], LOW);
+              Serial.print(0);
+              
+        
+      }
+    } 
+    for (int i = 9 - sizeof(binary); i < 9; i++){
+//    Serial.print("Digital Pin: ");
+//    Serial.print(i);
+//    Serial.print(" is: ");
+//    Serial.print(pins[i]);
+//    Serial.print(" with value: ");
       serByte = bytes[i];
       if(serByte == '1')
       {
               digitalWrite(pins[i], HIGH);
-              Serial.println(1);
+              Serial.print(1);
               
         
       }
-      else if(serByte =='0')
+      else
       {
              digitalWrite(pins[i], LOW);
-                  Serial.println(0);
+                  Serial.print(0);
       }
-      else{Serial.println();}
     } 
+    Serial.println();
 }

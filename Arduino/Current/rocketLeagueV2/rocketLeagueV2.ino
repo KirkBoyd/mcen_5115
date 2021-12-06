@@ -14,12 +14,14 @@
 #include <utility/imumaths.h>
 
 int motVals[12] = {0}; //integer array to store motor values received over serial
+int theta = 0;
+int oldtheta = 1;
 String IMUstr = "<IMU|0>"; //String to send IMU data
 String sendPacket; //packet to send to pi
 double magX = -1000000, magY = -1000000;
 sensors_event_t magEvent, orientationData; //BNO055 magnetic data
 /* Set the delay between fresh samples */
-uint16_t BNO055_SAMPLERATE_DELAY_MS = 1000;
+uint16_t BNO055_SAMPLERATE_DELAY_MS = 20;
 
 // Check I2C device address and correct line below (by default address is 0x29 or 0x28)
 //                                   id, address
@@ -83,20 +85,14 @@ void loop(){
       moveMotor(i,motVals[i],motVals[i+4]);
     }
   }
-    bno.getEvent(&magEvent, Adafruit_BNO055::VECTOR_MAGNETOMETER);
-    bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-  magX = magEvent.magnetic.x;
-  magY = magEvent.magnetic.y;
-  int theta = orientationData.orientation.x;
-  //sendIMU(theta);
-  int yaw = atan2(magY, magX) * 180/3.14159+180;
-  IMUstr = String(theta/2); //Divide by two to prevent bit failure 12/2
-  //sendIMU(theta);
-//  Serial.println(IMUstr);
-  loopCounter = loopCounter + 1;
-      sendPacket = "<" + IMUstr + ">";
+  bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+  theta = int(orientationData.orientation.x);
+  if(theta != oldtheta){
+    sendIMU(theta);
+  }
+  oldtheta = theta;
   if (loopCounter%10 == 0){
-      Serial.println(sendPacket);
+      //Serial.println(sendPacket);
   resetMotorDrivers();
   }
 //  if(Serial.availableForWrite() == 0){

@@ -4,6 +4,7 @@ import time
 from numpy.core.numeric import ones
 from gpiozero import Button
 from gpiozero import LED
+import gpiozeros
 import serial
 import signal
 
@@ -23,9 +24,9 @@ ledBLU = LED(23)
 imuCounter = 0
 ledGRN = LED(24)
 radCounter = 0
-ledIMU = LED(25)
-ledRAD = LED(13)
 
+
+    
 #Serial Communication Initialization and resetting
 serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.05,timeout=.5) #IMU and Motors
 serRadio = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
@@ -42,16 +43,8 @@ connected = True
 
 #Serial Communication functions
 def pull(world):
-    if (serMotors.in_waiting > 0): 
-        try:
-            #print("trying to read IMU packet")
-            inPacket = serMotors.readline().decode("utf-8").replace("\n", "") #Read in line, convert to string, remove new line character
-            #print(inPacket)
-            world.parseImu(inPacket)
-            #print("The f word")
-        except UnicodeDecodeError:
-            print("Invalid Packet")
-            return world
+    world.robot.theta = communication.printBinary()
+    
     if (serRadio.in_waiting > 0):
         try:
             #print("trying to read mmmmmmmRadio packet")
@@ -125,14 +118,14 @@ def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
             debugging.printRobotCoords(debugWorld)
-            debugging.printGoalSpeeds(debugWorld)
+            #debugging.printGoalSpeeds(debugWorld)
             push(debugWorld)
     except KeyboardInterrupt:
         print("turds")
         serMotors.write(b"<STP|>")
             
     pass
-
+    
 if __name__ == '__main__': #Main Loop
     print('------------------------')
     print('Waiting for start button')
