@@ -21,7 +21,7 @@ void subdivideStr(String packet){
   int tempNumInd = 0;
   int motValsInd = 0;
   
-  Serial.println(packet);
+  //Serial.println(packet);
   packet.toCharArray(bytes, len);
   char serByte; 
   for(int i=0; i<len; i++){

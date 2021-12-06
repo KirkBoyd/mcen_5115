@@ -35,7 +35,7 @@ time.sleep(1)
 serMotors.flush()
 serMotors.reset_output_buffer()
 serMotors.reset_input_buffer()
-
+lastPacket = ""
 serRadio.flush()
 serRadio.reset_output_buffer()
 serRadio.reset_input_buffer()
@@ -80,7 +80,7 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
     robot = world.robot
     speeds = ""
     directions = ""
-    lastPacket = ""
+    global lastPacket
     if serMotors.out_waiting ==0:
         for i in range(4):
             speeds = speeds + str(int(robot.speeds[i]))
@@ -94,8 +94,9 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
         try:
             if (packetToSend != lastPacket):
                 serMotors.write(packetToSend.encode('utf-8'))
-            print('Sent:' + packetToSend)
-            lastPacket = packetToSend
+                time.sleep(.15)
+                print('Sent:' + packetToSend)
+                lastPacket = packetToSend
         except serial.serialutil.SerialTimeoutException:
             serMotors.reset_output_buffer
             print("Push Serial Timeout")

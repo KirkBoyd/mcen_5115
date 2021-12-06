@@ -104,14 +104,15 @@ void setup(){
 }
 int loopCounter = 1;
 int motStep[4];
-const int numSteps = 20;
+const int numSteps = 10;
 int motSteps[numSteps];
 int scaledSpeeds[4] = {255,255,255,255};
 int oldScaledSpeeds[4] = {255,255,255,255};
 float percentage = .75;
 //<MOT|254-254-254-254-1-1-1-1->
 //<MOT|254-254-254-254-0-0-0-0->
-void loop(){ 
+void loop(){
+//  currentMillis = millis(); 
   if(Serial.available() > 0){
     String data = Serial.readStringUntil('\n');
     subdivideStr(data);
@@ -129,7 +130,12 @@ void loop(){
     }
     //Serial.println();
     //if(millis() % 10 == 0){ // hopefully replacing the delay(10) at the bottom of this
-      for(int j = 1; j<numSteps+1; j){ // Ramp Motors
+      for(int j = 1; j<numSteps+1; j++){ // Ramp Motors
+        
+//        while (currentMillis - priviousMillis < 10){
+//          currentMillis = millis();
+//        }
+//        previousMillis = currentMillis;
         for(int i = 0; i<4; i++){  //Set motors to intended values again
           //moveMotor(i,motVals[i],motVals[i+4]);
           int goalSpeed = oldScaledSpeeds[i] + j*motSteps[i];
@@ -167,10 +173,9 @@ void loop(){
               analogWrite(analogPins[i],goalSpeed*percentage);
             }
           }
-        if (millis()%1000 == 0){
-          j++;
-        }
-        //delay(10);
+        
+ //       previousMillis = currentMillis;
+          delay(10);
         }
       }
     //}
@@ -188,4 +193,5 @@ void loop(){
   }
   oldtheta = theta;
   loopCounter++;  
+//  previousMillis = currentMillis;
 }
