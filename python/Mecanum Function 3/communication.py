@@ -2,7 +2,6 @@ import numpy as np
 import serial
 from gpiozero import Button
 
-    
 def push(robot,motorSerial): #pushes data TO the arduino from the pi (Complete)
     speeds = ""
     directions = ""
