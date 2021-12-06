@@ -63,6 +63,10 @@ void subdivideStr(String packet){
               motValsInd++;
               
             }
+            else{
+              tempNum = tempNum + serByte;
+              tempNumInd++;
+            }
           else if(cmdBuffer == "STP"){
             Serial.println("STP Received");
             motVals[0] = 0;
