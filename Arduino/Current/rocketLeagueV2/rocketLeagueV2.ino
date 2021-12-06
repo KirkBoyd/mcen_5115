@@ -106,8 +106,8 @@ int loopCounter = 1;
 int motStep[4];
 const int numSteps = 20;
 int motSteps[numSteps];
-int scaledSpeeds[4] = {255};
-int oldScaledSpeeds[4] = {255};
+int scaledSpeeds[4] = {255,255,255,255};
+int oldScaledSpeeds[4] = {255,255,255,255};
 float percentage = 1;
 void loop(){ 
   if(Serial.available() > 0){
@@ -115,10 +115,10 @@ void loop(){
     subdivideStr(data);
     for(int i = 0; i<4; i++){
       if (motVals[i+4] ==1){ //Going Forawrd
-        scaledSpeeds[i] = 250+motVals[i];
+        scaledSpeeds[i] = 255+motVals[i];
       }
       else{
-        scaledSpeeds[i] = 260-motVals[i];
+        scaledSpeeds[i] = 255-motVals[i];
       }
     }
     for(int i = 0; i<4; i++){ // set ramp vals
