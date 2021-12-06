@@ -28,7 +28,7 @@ radCounter = 0
 
     
 #Serial Communication Initialization and resetting
-serMotors = serial.Serial('/dev/ttyACM0',9600,write_timeout=.05,timeout=.5) #IMU and Motors
+serMotors = serial.Serial('/dev/ttyACM2',9600,write_timeout=.05,timeout=.5) #IMU and Motors
 serRadio = serial.Serial('/dev/ttyACM1',9600,write_timeout=.5,timeout=.5) #Radio
 time.sleep(1)
 
@@ -78,12 +78,36 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
             return
     else: serMotors.reset_output_buffer
     
-def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
-    soccerWorld = world.worldClass(team,posTargetx,posTargety,posProtectx,posProtecty)
+def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,bias = 0,biasReceived = False):
+    # NEW BINARY STUFF #
+    binaryPins = [17,27,22,13,19,26,20,21,25]
+    binaryButtons = [0,0,0,0,0,0,0,0,0]
+    binaryVals = [0,0,0,0,0,0,0,0,0]
+
+    for i in range(9): # initialize buttons as pins
+        binaryButtons[i] = gpiozero.DigitalInputDevice(binaryPins[i],pull_up = None, active_state = True)
+
+    soccerWorld = world.worldClass(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,bias,biasReceived)
     soccerWorld = navigation.updateGoalPositions(soccerWorld,300,50,0)
     
     try:
         while True:
+            angle = 0
+            for i in range(9):
+                if binaryButtons[i].is_active:
+                    angle = angle + 2**(8-i)
+            angle = angle /180*np.pi
+            if not soccerWorld.robot.imuBiasRecieved:
+                soccerWorld.robot.imuBias = angle
+                soccerWorld.robot.imuBiasRecieved = True
+            angle = angle - soccerWorld.robot.imuBias
+            if angle > np.pi:
+                angle = angle - 2*np.pi
+            elif angle < -np.pi:
+                angle = angle + 2*np.pi
+                
+            soccerWorld.robot.theta = angle
+            
             soccerWorld = pull(soccerWorld)
             if navigation.defense(soccerWorld): #Ball is on our half
                 if navigation.checkDefensive(soccerWorld): #We are in a protective position
@@ -99,11 +123,15 @@ def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty)
                         navigation.updateGoalPositions(soccerWorld,soccerWorld.posTargetX,soccerWorld.posTargetY,soccerWorld.robot.theta)
                 else: #Robot is far from ball
                     soccerWorld = navigation.scoringPosition(soccerWorld)
-                    soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.posScoringX,soccerWorld.posScoringY,soccerWorld.posScoringTheta)  
+                    soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.posScoringX,soccerWorld.posScoringY,soccerWorld.posScoringTheta)
+            soccerWorld = kinematics.updateGoalSpeeds(soccerWorld)
+            soccerWorld = kinematics.updateMotorSpeeds(soccerWorld)
+            debugging.printGoalSpeeds(soccerWorld)
+            debugging.printGoalPos(soccerWorld)
             push(soccerWorld)
     except KeyboardInterrupt:
         print("turds")
-        stop = "<STOP>"
+        stop = "<STP|>"
         serMotors.write(stop.encode('utf-8'))
         
 def readIMU():
@@ -116,7 +144,7 @@ def readIMU():
         #print(str(i) + "............." + str(x))
     return val
 
-def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
+def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,bias = 0,biasReceived = False):
     # NEW BINARY STUFF #
     binaryPins = [17,27,22,13,19,26,20,21,25]
     binaryButtons = [0,0,0,0,0,0,0,0,0]
@@ -126,7 +154,7 @@ def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
         binaryButtons[i] = gpiozero.DigitalInputDevice(binaryPins[i],pull_up = None, active_state = True)
         
     try:
-        debugWorld = world.worldClass(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty)
+        debugWorld = world.worldClass(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,bias,biasReceived)
         while True:
             angle = 0
             for i in range(9):
@@ -149,8 +177,8 @@ def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
             debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.ball.x,debugWorld.ball.y,0)
             debugWorld = kinematics.updateGoalSpeeds(debugWorld)
             debugWorld = kinematics.updateMotorSpeeds(debugWorld)
-            debugging.printRadio(debugWorld)
-            debugging.printRobotCoords(debugWorld)
+            #debugging.printRadio(debugWorld)
+            #debugging.printRobotCoords(debugWorld)
             debugging.printGoalSpeeds(debugWorld)
             push(debugWorld)
     except KeyboardInterrupt:
@@ -163,6 +191,19 @@ if __name__ == '__main__': #Main Loop
     print('------------------------')
     print('Waiting for start button')
     print('------------------------')
+    
+    # NEW BINARY STUFF #
+    binaryPins = [17,27,22,13,19,26,20,21,25]
+    binaryButtons = [0,0,0,0,0,0,0,0,0]
+    binaryVals = [0,0,0,0,0,0,0,0,0]
+    angle = 0
+
+    for i in range(9): # initialize buttons as pins
+        binaryButton = gpiozero.DigitalInputDevice(binaryPins[i],pull_up = None, active_state = True)
+        if binaryButton.is_active:
+            angle = angle + 2**(8-i)
+        del binaryButton
+    
     while not button.value:
         if buttonGRN.is_pressed:
             team = 'green'
@@ -183,4 +224,4 @@ if __name__ == '__main__': #Main Loop
             ledBLU.on()
             ledGRN.off()
     print("Started")
-    testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty)
+    playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,angle,True)

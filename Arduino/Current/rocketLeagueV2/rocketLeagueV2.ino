@@ -102,7 +102,7 @@ void setup(){
 }
 int loopCounter = 1;
 int motStep[4];
-const int numSteps = 2;
+const int numSteps = 1;
 int motSteps[numSteps];
 void loop(){ 
   if(Serial.available() > 0){

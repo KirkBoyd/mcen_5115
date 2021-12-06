@@ -30,9 +30,11 @@ def updateMotorSpeeds(world):
     vy = world.robot.goalVelocityY
     vTrans = (vx**2 + vx**2)**.5
     wz = -world.robot.goalVelocityTheta #Omega Z
-    if vTrans < 15 and abs(wz) < .1:
+    if vTrans < 25:
         speedRatio = .5
-    elif vTrans < 25:
+    elif vTrans == 0:
+        speedRatio = .5
+    elif vTrans < 50:
         speedRatio = .75
     else:
         speedRatio = 1
@@ -40,24 +42,25 @@ def updateMotorSpeeds(world):
     r = world.robot.r
     lx = world.robot.lx
     ly = world.robot.ly
-    
-    wz = wz*0.5
+    #print(wz)
+    wz = wz*0.01 * abs(vTrans+1)
 
     omega0 = (vx-vy-(lx+ly)*wz)/r
     omega1 = (vx+vy+(lx+ly)*wz)/r
     omega2 = (vx+vy-(lx+ly)*wz)/r
     omega3 = (vx-vy+(lx+ly)*wz)/r
-    
+    #print(wz)
     omegas = np.array([omega0,omega1,omega2,omega3])
+    #print(omegas)
     directions = np.array(omegas > 0)
     
     absoluteOmegas = abs(omegas)
     maxOmega = max(omegas)
     
     if maxOmega > 0:
-        normalizedOmegas = np.interp(absoluteOmegas,[0, maxOmega],[75,254])
+        normalizedOmegas = np.interp(absoluteOmegas,[0, maxOmega],[0,254])
     else:
-        normalizedOmegas = np.interp(absoluteOmegas,[0, maxOmega],[75,254])
+        normalizedOmegas = np.interp(absoluteOmegas,[0, maxOmega],[0,254])
     
     world.robot.speeds = normalizedOmegas*speedRatio
     world.robot.directions = directions

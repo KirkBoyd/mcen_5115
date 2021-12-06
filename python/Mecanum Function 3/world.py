@@ -10,7 +10,7 @@ class opponentClass:
         self.color = color
 
 class robotClass:
-    def __init__(self,color = "green"):
+    def __init__(self,color = "green",bias = 0,biasReceived=False):
         #Robot Parameters
         self.r  = 97/2
         self.lx = 125
@@ -36,8 +36,8 @@ class robotClass:
         self.directions = np.array([0,0,0,0])
         
         #Imu Bias
-        self.imuBias = 0
-        self.imuBiasRecieved = False
+        self.imuBias = bias
+        self.imuBiasRecieved = biasReceived
         
         #Game Variables
         self.color = color
@@ -49,9 +49,9 @@ class ballClass:
         self.color = color
 
 class worldClass():
-    def __init__(self,team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty):
+    def __init__(self,team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,bias = 0,biasReceived=False):
         self.opponent = opponentClass(opponentColor)
-        self.robot = robotClass(team)
+        self.robot = robotClass(team,bias,biasReceived)
         self.ball = ballClass('yellow')
         self.radioData = np.zeros(6)
         
@@ -81,8 +81,8 @@ class worldClass():
         dx = wx - self.robot.x
         dy = wy - self.robot.y
         
-        robotx = dy*np.cos(self.robot.theta) - dx*np.sin(self.robot.theta)
-        roboty = -dy*np.sin(self.robot.theta) + dx*np.cos(self.robot.theta)
+        robotx = dy*np.cos(self.robot.theta) +dx*np.sin(self.robot.theta)
+        roboty = dy*np.sin(self.robot.theta) + dx*np.cos(self.robot.theta)
 
         rtheta = np.arctan2(roboty,robotx)
         return robotx, roboty, rtheta

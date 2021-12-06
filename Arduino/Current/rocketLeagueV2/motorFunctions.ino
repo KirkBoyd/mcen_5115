@@ -13,6 +13,11 @@ void moveMotor(int motorNum, float speedRatio, bool dir){ // motorNum is which m
     ina1 = false;
     ina2 = true;
   }
+  if(speedRatio < 50){
+    ina1 = false;
+    ina2 = false;
+    speedRatio =0;
+  }
   if(motorNum == 0){
     digitalWrite(aIn1_FL, ina1);
     digitalWrite(aIn2_FL, ina2);

@@ -10,6 +10,10 @@ def printGoalSpeeds(world):
     print("Goal VX: " + str(world.robot.goalVelocityX) + " Goal VY: " + str(world.robot.goalVelocityY) + " Goal VTheta: " + str(world.robot.goalVelocityTheta))
     pass
 
+def printGoalPos(world):
+    print("Goal X: " + str(world.robot.goalX) + " Goal Y: " + str(world.robot.goalY) + " Goal Theta: " + str(world.robot.goalTheta))
+    pass
+
 def printMotorSpeeds(world):
     print("Robot Motor Speeds: " + str(world.robot.speeds) + " Robot Motor Directions: " + str(world.robot.directions))
     pass
