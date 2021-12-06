@@ -76,7 +76,7 @@ def printDirection(world):
 
 
 def push(world): #pushes data TO the arduino from the pi (Complete)
-    printDirection(world)
+    #printDirection(world)
     robot = world.robot
     speeds = ""
     directions = ""
@@ -94,8 +94,8 @@ def push(world): #pushes data TO the arduino from the pi (Complete)
         try:
             if (packetToSend != lastPacket):
                 serMotors.write(packetToSend.encode('utf-8'))
-                time.sleep(.15)
-                print('Sent:' + packetToSend)
+                time.sleep(.2)
+                #print('Sent:' + packetToSend)
                 lastPacket = packetToSend
         except serial.serialutil.SerialTimeoutException:
             serMotors.reset_output_buffer
@@ -108,6 +108,8 @@ def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,
     binaryPins = [17,27,22,13,19,26,20,21,25]
     binaryButtons = [0,0,0,0,0,0,0,0,0]
     binaryVals = [0,0,0,0,0,0,0,0,0]
+    button = Button(16)
+    global lastPacket
 
     for i in range(9): # initialize buttons as pins
         binaryButtons[i] = gpiozero.DigitalInputDevice(binaryPins[i],pull_up = None, active_state = True)
@@ -117,51 +119,69 @@ def playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,
     
     try:
         while True:
-            angle = 0
-            for i in range(9):
-                if binaryButtons[i].is_active:
-                    angle = angle + 2**(8-i)
+            print("-----------------")
+            print("Waiting for press")
+            print("-----------------")
+            button.wait_for_press()
+            print("-----------")
+            print("Game Started")
+            print("-----------")
+            time.sleep(1)
+            lastPacket = ""
+            while not button.is_pressed:
+                angle = 0
+                for i in range(9):
+                    if binaryButtons[i].is_active:
+                        angle = angle + 2**(8-i)
+                    
+                angle = angle /180*np.pi
+                if not soccerWorld.robot.imuBiasRecieved:
+                    soccerWorld.robot.imuBias = angle
+                    soccerWorld.robot.imuBiasRecieved = True
+                    
+                angle = angle - soccerWorld.robot.imuBias
+                    
+                if angle > np.pi:
+                    angle = angle - 2*np.pi
+                elif angle < -np.pi:
+                    angle = angle + 2*np.pi
+                    
+                soccerWorld.robot.theta = angle
                 
-            angle = angle /180*np.pi
-            if not soccerWorld.robot.imuBiasRecieved:
-                soccerWorld.robot.imuBias = angle
-                soccerWorld.robot.imuBiasRecieved = True
-                
-            angle = angle - soccerWorld.robot.imuBias
-                
-            if angle > np.pi:
-                angle = angle - 2*np.pi
-            elif angle < -np.pi:
-                angle = angle + 2*np.pi
-                
-            soccerWorld.robot.theta = angle
-            
-            soccerWorld = pull(soccerWorld)
-            if navigation.defense(soccerWorld): #Ball is on our half
-                if navigation.checkDefensive(soccerWorld): #We are in a protective position
+                soccerWorld = pull(soccerWorld)
+                if navigation.defense(soccerWorld): #Ball is on our half
+                    if navigation.checkDefensive(soccerWorld): #We are in a protective position
+                        if  navigation.scoringCheck(soccerWorld): #Robot is touching ball
+                            navigation.updateGoalPositions(soccerWorld,soccerWorld.posTargetX,soccerWorld.posTargetY,soccerWorld.robot.theta)
+                        else: #Robot is far from ball
+                            soccerWorld = navigation.scoringPosition(soccerWorld)
+                            soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.posScoringX,soccerWorld.posScoringY,soccerWorld.posScoringTheta)
+                    else: #We are not in a protective position
+                            navigation.defensePosition(soccerWorld)
+                else: #Ball is on their half
                     if  navigation.scoringCheck(soccerWorld): #Robot is touching ball
-                        navigation.updateGoalPositions(soccerWorld,soccerWorld.posTargetX,soccerWorld.posTargetY,soccerWorld.robot.theta)
+                            navigation.updateGoalPositions(soccerWorld,soccerWorld.posTargetX,soccerWorld.posTargetY,soccerWorld.robot.theta)
                     else: #Robot is far from ball
                         soccerWorld = navigation.scoringPosition(soccerWorld)
                         soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.posScoringX,soccerWorld.posScoringY,soccerWorld.posScoringTheta)
-                else: #We are not in a protective position
-                        navigation.defensePosition(soccerWorld)
-            else: #Ball is on their half
-                if  navigation.scoringCheck(soccerWorld): #Robot is touching ball
-                        navigation.updateGoalPositions(soccerWorld,soccerWorld.posTargetX,soccerWorld.posTargetY,soccerWorld.robot.theta)
-                else: #Robot is far from ball
-                    soccerWorld = navigation.scoringPosition(soccerWorld)
-                    soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.posScoringX,soccerWorld.posScoringY,soccerWorld.posScoringTheta)
-            if soccerWorld.robot.color == 'green':        
-                soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.robot.goalX,soccerWorld.robot.goalY,0)
-            else:        
-                soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.robot.goalX,soccerWorld.robot.goalY,np.pi)
-            soccerWorld = kinematics.updateGoalSpeeds(soccerWorld)
-            soccerWorld = kinematics.updateMotorSpeeds(soccerWorld)
-            debugging.printGoalSpeeds(soccerWorld)
-            debugging.printGoalPos(soccerWorld)
-            debugging.printRobotCoords(soccerWorld)
-            push(soccerWorld)
+                if soccerWorld.robot.color == 'green':        
+                    soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.robot.goalX,soccerWorld.robot.goalY,0)
+                else:        
+                    soccerWorld = navigation.updateGoalPositions(soccerWorld,soccerWorld.robot.goalX,soccerWorld.robot.goalY,np.pi)
+                soccerWorld = kinematics.updateGoalSpeeds(soccerWorld)
+                soccerWorld = kinematics.updateMotorSpeeds(soccerWorld)
+                #debugging.printGoalSpeeds(soccerWorld)
+                #debugging.printGoalPos(soccerWorld)
+                #debugging.printRobotCoords(soccerWorld)
+                push(soccerWorld)
+            
+            serMotors.write(b"<STP|>")
+            print("------------------")
+            print("Game Reseting.....")
+            print("------------------")
+            time.sleep(3)
+            print("   Game Reset")
+            print("------------------")
     except KeyboardInterrupt:
         print("turds")
         stop = "<STP|>"
@@ -182,38 +202,51 @@ def testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,b
     binaryPins = [17,27,22,13,19,26,20,21,25]
     binaryButtons = [0,0,0,0,0,0,0,0,0]
     binaryVals = [0,0,0,0,0,0,0,0,0]
-
+    debugWorld = world.worldClass(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,bias,biasReceived)
+    global lastPacket
     for i in range(9): # initialize buttons as pins
         binaryButtons[i] = gpiozero.DigitalInputDevice(binaryPins[i],pull_up = None, active_state = True)
         
     try:
-        debugWorld = world.worldClass(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,bias,biasReceived)
         while True:
-            angle = 0
-            for i in range(9):
-                if binaryButtons[i].is_active:
-                    angle = angle + 2**(8-i)
-            angle = angle /180*np.pi
-            if not debugWorld.robot.imuBiasRecieved:
-                debugWorld.robot.imuBias = angle
-                debugWorld.robot.imuBiasRecieved = True
-            angle = angle - debugWorld.robot.imuBias
-            if angle > np.pi:
-                angle = angle - 2*np.pi
-            elif angle < -np.pi:
-                angle = angle + 2*np.pi
+            print("Waiting for press")
+            button.wait_for_press()
+            print("Game Started")
+            time.sleep(1)
+            lastPacket = ""
+            while not button.is_pressed:
+                angle = 0
+                for i in range(9):
+                    if binaryButtons[i].is_active:
+                        angle = angle + 2**(8-i)
+                angle = angle /180*np.pi
+                if not debugWorld.robot.imuBiasRecieved:
+                    debugWorld.robot.imuBias = angle
+                    debugWorld.robot.imuBiasRecieved = True
+                angle = angle - debugWorld.robot.imuBias
+                if angle > np.pi:
+                    angle = angle - 2*np.pi
+                elif angle < -np.pi:
+                    angle = angle + 2*np.pi
+                    
+                debugWorld.robot.theta = angle
                 
-            debugWorld.robot.theta = angle
-            
-            debugWorld = pull(debugWorld)
-            #debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y,0)
-            debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y,0)
-            debugWorld = kinematics.updateGoalSpeeds(debugWorld)
-            debugWorld = kinematics.updateMotorSpeeds(debugWorld)
-            #debugging.printRadio(debugWorld)
-            #debugging.printRobotCoords(debugWorld)
-            #debugging.printGoalSpeeds(debugWorld)
-            push(debugWorld)
+                debugWorld = pull(debugWorld)
+                #debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y,0)
+                debugWorld = navigation.updateGoalPositions(debugWorld,debugWorld.robot.x,debugWorld.robot.y-100,0)
+                debugWorld = kinematics.updateGoalSpeeds(debugWorld)
+                debugWorld = kinematics.updateMotorSpeeds(debugWorld)
+                #debugging.printRadio(debugWorld)
+                #debugging.printRobotCoords(debugWorld)
+                #debugging.printGoalSpeeds(debugWorld)
+                push(debugWorld)
+            serMotors.write(b"<STP|>")
+            print("------------------")
+            print("Game Reseting.....")
+            print("------------------")
+            time.sleep(3)
+            print("   Game Reset")
+            print("------------------")
     except KeyboardInterrupt:
         print("turds")
         serMotors.write(b"<STP|>")
@@ -236,7 +269,7 @@ if __name__ == '__main__': #Main Loop
         if binaryButton.is_active:
             angle = angle + 2**(8-i)
         del binaryButton
-    print(angle)
+    #print(angle)
     while not button.value:
         if buttonGRN.is_pressed:
             team = 'green'
@@ -256,6 +289,9 @@ if __name__ == '__main__': #Main Loop
             posProtecty = 499 #Our Goal
             ledBLU.on()
             ledGRN.off()
-    print("Started")
+    print("------------------")
+    print(team + " Team Selected")
+    print("------------------")
+    del button
     #playSoccer(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,angle,True)
-    testDebug(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,angle,True)
+    debugWorld(team,opponentColor,posTargetx,posTargety,posProtectx,posProtecty,angle,True)

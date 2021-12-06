@@ -108,7 +108,7 @@ const int numSteps = 10;
 int motSteps[numSteps];
 int scaledSpeeds[4] = {255,255,255,255};
 int oldScaledSpeeds[4] = {255,255,255,255};
-float percentage = .75;
+float percentage = .4;
 //<MOT|254-254-254-254-1-1-1-1->
 //<MOT|254-254-254-254-0-0-0-0->
 void loop(){
@@ -139,7 +139,7 @@ void loop(){
         for(int i = 0; i<4; i++){  //Set motors to intended values again
           //moveMotor(i,motVals[i],motVals[i+4]);
           int goalSpeed = oldScaledSpeeds[i] + j*motSteps[i];
-          if(i%2 ==1){
+          if(i%2 ==0){
             if (goalSpeed > 255){
               goalSpeed -= 255;
               if(goalSpeed <50){goalSpeed = 0;};
@@ -175,7 +175,7 @@ void loop(){
           }
         
  //       previousMillis = currentMillis;
-          delay(10);
+          delay(int(10*percentage));
         }
       }
     //}

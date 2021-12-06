@@ -30,9 +30,11 @@ def updateMotorSpeeds(world):
     vy = world.robot.goalVelocityY
     vTrans = (vx**2 + vx**2)**.5
     wz = -world.robot.goalVelocityTheta #Omega Z
-    if vTrans < 25:
-        speedRatio = .5
-    elif vTrans == 0:
+    if vTrans < 5 and abs(wz) < .1:
+        speedRatio = .15
+    elif vTrans < 5:
+        speedRatio = .25
+    elif vTrans < 25:
         speedRatio = .5
     elif vTrans < 50:
         speedRatio = .75
@@ -43,7 +45,7 @@ def updateMotorSpeeds(world):
     lx = world.robot.lx
     ly = world.robot.ly
     #print(wz)
-    wz = wz*0.01 * abs(vTrans+1)
+    wz = wz*0.005 * abs(vTrans+1)
 
     omega0 = (vx-vy-(lx+ly)*wz)/r
     omega1 = (vx+vy+(lx+ly)*wz)/r
