@@ -68,8 +68,8 @@ def keypress(event):
         i += 1
     
     toPush = np.append(speeds,directions)
-    push("MOT",toPush)
     robot.printWheelSpeeds()
+    push("MOT",toPush)
 
 #bind all major keys and call our keypress handler
 window = tk.Tk()

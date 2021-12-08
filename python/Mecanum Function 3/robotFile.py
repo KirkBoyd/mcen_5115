@@ -20,7 +20,7 @@ class robotClass():
         
     def printWheelSpeeds(self):
         os.system('cls' if os.name == 'nt' else 'clear')
-        for i in range(4):
+        for i in range(2):
             print('%.2f'%self.wheelsSpeeds[2*i],end="")
             print(" ---- ",end="")
             print ('%.2f'%self.wheelsSpeeds[(2*i) + 1])
